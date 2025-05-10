@@ -542,7 +542,7 @@ body {
 
 cg-board {
   /* board backround*/
-  background-image: url("https://lichess1.org/assets/_YWWdc6/images/board/svg/brown.svg") !important;
+  background-image: url("https://lichess1.org/assets/hashed/brown.8fd2d80d.png") !important;
 }
 
 .cg-wrap coords {
