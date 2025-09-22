@@ -1,5 +1,5 @@
 export const gamesURL =
-  "https://eastus2.azure.data.mongodb-api.com/app/guess-the-elo-service-odhzbev/endpoint/get_games";
+  "https://funcapp-guess-the-elo-dev.azurewebsites.net/api/games";
 export const streakIconHTML = `<IMG class="streakIcon" SRC="images/icons/fire.gif"></IMG>`;
 export const incorrectGuessResponse = [
   "Incorrect",
