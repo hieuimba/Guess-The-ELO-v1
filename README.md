@@ -29,7 +29,7 @@ Play here - https://guesstheelo.com
 
 - All Elo ratings are from Lichess, which starts at 1500.
 
-Have fun!
+Have fun!!
 
 ## Data Source
 
