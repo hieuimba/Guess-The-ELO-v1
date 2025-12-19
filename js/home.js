@@ -120,13 +120,29 @@ gameModesButtons.forEach((button) => {
       currentGameMode = "endless";
     }
 
+    // Update URL with the selected game mode
+    const url = new URL(window.location);
+    url.searchParams.set("play", currentGameMode);
+    window.history.replaceState({}, "", url);
+
     // Update UI for the selected mode
     updateUIForMode();
   });
 });
 
-// Click classic button by default on page load
-classicButton.click();
+// Check URL parameters on page load
+const urlParams = new URLSearchParams(window.location.search);
+const playMode = urlParams.get("play");
+
+// Click the appropriate button based on URL parameter
+if (playMode === "endless") {
+  endlessModeButton.click();
+} else if (playMode === "daily") {
+  dailyChallengeButton.click();
+} else {
+  // Default to classic for any other value or no parameter
+  classicButton.click();
+}
 
 function updateOption(optionType, action) {
   if (currentGameMode === "daily") return;
