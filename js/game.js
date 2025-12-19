@@ -489,9 +489,11 @@ function createRoundsText() {
 }
 
 function generateHeartIcons() {
+  const heartsContainer = document.getElementById("heartsContainer");
+
   if (currentGameMode === "endless") {
-    const heartsContainer = document.getElementById("heartsContainer");
     heartsContainer.innerHTML = ""; // Clear previous contents
+    heartsContainer.style.display = "flex"; // Show the container
 
     for (let i = 0; i < livesCount; i++) {
       const heartImg = document.createElement("img");
@@ -500,6 +502,10 @@ function generateHeartIcons() {
       heartImg.src = "images/icons/heart.svg";
       heartsContainer.appendChild(heartImg);
     }
+  } else {
+    // Hide hearts container for non-endless modes
+    heartsContainer.innerHTML = ""; // Clear any existing hearts
+    heartsContainer.style.display = "none"; // Hide the container
   }
 }
 
