@@ -1,5 +1,5 @@
 export const gamesURL =
-  "https://funcapp-guess-the-elo-dev.azurewebsites.net/api/games";
+  "https://funcapp-guess-the-elo-dev.azurewebsites.net/api/games-v2";
 export const streakIconHTML = `<IMG class="streakIcon" SRC="images/icons/fire.gif"></IMG>`;
 export const incorrectGuessResponse = [
   "Incorrect",
