@@ -167,11 +167,7 @@ body {
     clamp(0.3rem, -0.989rem + 5.978vw, 2rem)
     1fr; /* min 345 max 800 */
   align-items: center;
-  margin-bottom: clamp(
-    2.533rem,
-    1.495rem + 4.813vw,
-    3.3rem
-  ); /* min 345 max 600 */
+  margin-bottom: clamp(2rem, 0.647rem + 6.275vw, 3rem); /* min 345 max 600 */
 }
 
 .gameModesButtons {
@@ -279,7 +275,7 @@ body {
   cursor: pointer;
   color: var(--white);
   font-size: 1.25rem;
-  margin-top: clamp(2rem, 1.459rem + 2.51vw, 2.4rem); /* min 345 max 600 */
+  margin-top: clamp(2rem, 0.647rem + 6.275vw, 3rem); /* min 345 max 600 */
 }
 
 .startButton:hover {
@@ -289,7 +285,7 @@ body {
 /* Options - Title & Layout */
 .optionTitle {
   font-size: clamp(1.5rem, 0.485rem + 4.706vw, 2.25rem); /* min 345 max 600 */
-  margin-bottom: clamp(2rem, 1.459rem + 2.51vw, 2.4rem); /* min 345 max 600 */
+  margin-bottom: clamp(1.5rem, 0.824rem + 3.137vw, 2rem); /* min 345 max 600 */
 }
 
 #gameOptions {
