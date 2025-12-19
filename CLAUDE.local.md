@@ -16,8 +16,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Code Structure
 
 - **`index.html`**: Single-page application entry point with all UI screens (home, game, result)
-- **`js/home.js`**: Home screen, game mode selection, options (rounds, time control, evaluation, time limit)
+- **`js/home.js`**: Home screen with unified game mode selection and options management
+  - Classic, Daily Challenge, and Endless Mode buttons
+  - Shared options interface: time control, evaluation, time limit
+  - Mode-specific option persistence in `gameModeOptions` object
+  - Unified start button that adapts text based on selected mode
 - **`js/game.js`**: Core game loop, scoring, round management, lives/hearts system, button handlers
+  - Unified start button handler for all game modes
+  - Mode-specific game initialization based on `currentGameMode`
 - **`js/data/fetchGames.js`**: Fetches chess games from Azure Functions backend API
 - **`js/elements/`**: UI component modules
   - `chessBoard.js`: Lichess PGN Viewer integration, evaluation bar/field, piece advantage, move annotations
@@ -30,20 +36,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Game Flow
 
-1. **Home Screen** (`home.js`): User selects game mode and options → fetches initial batch of games
+1. **Home Screen** (`home.js`): User selects game mode (Classic/Daily/Endless) → configures options → starts game
 2. **Game Screen** (`game.js`):
    - Displays chess game via `chessBoard.js`
    - Shows 4 ELO options (1 correct, 3 random distractors)
-   - Tracks score, streak, lives (Endless mode)
+   - Tracks score, streak, lives (Endless mode only)
    - Timer countdown via `clock.js`
 3. **Result Screen**: Score breakdown with animated counters
 
+### Game Modes
+
+- **Classic Mode**: Fixed 5 rounds, maximize score
+- **Daily Challenge**: Coming soon (placeholder UI shown, button disabled)
+- **Endless Mode**: Start with 3 lives, earn extra life every 3 correct answers, survive as long as possible
+
 ### Key Game Mechanics
 
-- **Classic Mode**: Fixed rounds (5 or 10), maximize score
-- **Endless Mode**: Start with 3 lives, earn extra life every 3 correct answers, survive as long as possible
 - **Scoring**: Base 1000 points + time bonus (0-500, doubled for 45s mode) + streak bonus (100 × streak count when ≥3)
-- **Game Fetching**: Initial batch fetched on start, additional 20 games fetched every 20 rounds in Endless mode
+- **Game Fetching**:
+  - Classic: Fetches 5 games at start
+  - Endless: Initial 20 games, additional 20 games fetched every 20 rounds
+- **Options**: Each mode maintains separate option selections that persist during the session
+- **Available Options**:
+  - Time Control: Any, Bullet, Blitz, Rapid, Classical
+  - Evaluation: Yes, No
+  - Time Limit: None, 90s, 45s
 
 ## Data Source
 
