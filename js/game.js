@@ -1,4 +1,4 @@
-import { gameConfigs } from "./home.js";
+import { gameConfigs, currentGameMode } from "./home.js";
 import { fetchGames } from "./data/fetchGames.js";
 import {
   initializeChessBoard,
@@ -27,9 +27,7 @@ import {
   resultHeaderPositive,
 } from "./other/config.js";
 
-const singlePlayerStartButton = document.getElementById(
-  "singlePlayerStartButton"
-);
+const startGameButton = document.getElementById("startGameButton");
 const nextGameButton = document.getElementById("nextGameButton");
 const viewResultButton = document.getElementById("viewResultButton");
 const mainMenuButton = document.getElementById("mainMenuButton");
@@ -94,16 +92,29 @@ function playSound(elementId) {
   audio.play();
 }
 
-singlePlayerStartButton.addEventListener("click", async () => {
+// Unified start game handler
+startGameButton?.addEventListener("click", async () => {
   document.title = "Guess The ELO";
   playSound("gameStartSound");
   disableStartGameButton();
   resetVariables();
-  maxRounds = parseInt(gameConfigs.rounds);
-  gameTimeControls = gameConfigs.timeControls;
-  gameTimeLimit = gameConfigs.timeLimit;
-  gameEvaluation = gameConfigs.evaluation;
-  gameArray = await fetchGames(gameTimeControls, maxRounds);
+
+  // Set game parameters based on current mode
+  if (currentGameMode === "classic") {
+    maxRounds = 5; // Always 5 rounds for classic mode
+    gameTimeControls = gameConfigs.timeControls;
+    gameTimeLimit = gameConfigs.timeLimit;
+    gameEvaluation = gameConfigs.evaluation;
+    gameArray = await fetchGames(gameTimeControls, maxRounds);
+  } else if (currentGameMode === "endless") {
+    maxRounds = 1000; // Set high value for endless mode
+    gameTimeControls = gameConfigs.timeControls;
+    gameTimeLimit = gameConfigs.timeLimit;
+    gameEvaluation = gameConfigs.evaluation;
+    gameArray = await fetchGames(gameTimeControls, 20); // Start with 20 games
+  }
+  // Daily challenge mode will be added here later
+
   generateHeartIcons();
   newGame(gameArray[currentRound]);
 
@@ -587,8 +598,9 @@ function enableStartGameButton() {
   navButtons.forEach((button) => {
     button.disabled = false;
   });
-  singlePlayerStartButton.disabled = false;
-  singlePlayerStartButton.setAttribute("aria-busy", "false");
+
+  startGameButton.disabled = false;
+  startGameButton.setAttribute("aria-busy", "false");
 }
 
 function disableStartGameButton() {
@@ -598,8 +610,9 @@ function disableStartGameButton() {
   navButtons.forEach((button) => {
     button.disabled = true;
   });
-  singlePlayerStartButton.disabled = true;
-  singlePlayerStartButton.setAttribute("aria-busy", "true");
+
+  startGameButton.disabled = true;
+  startGameButton.setAttribute("aria-busy", "true");
 }
 
 let observer;

@@ -50,33 +50,6 @@ const resizeObserver = new ResizeObserver(() => {
 resizeObserver.observe(boardContainer);
 window.addEventListener("resize", adjustScreen);
 
-function endlessOptionCheck() {
-  const div = document.getElementById("roundsSelection");
-  if (div.textContent === "Endless") {
-    div.classList.add("endlessStyle");
-  } else {
-    div.classList.remove("endlessStyle");
-  }
-}
-
-const endlessOptionObserver = new MutationObserver(endlessOptionCheck);
-endlessOptionObserver.observe(document.getElementById("roundsSelection"), {
-  childList: true,
-});
-
-// function difficultyOptionCheck() {
-//   const div = document.getElementById("evalSelection");
-//   if (div.textContent === "Hard") {
-//     div.classList.add("hardStyle");
-//   } else {
-//     div.classList.remove("hardStyle");
-//   }
-// }
-
-// const difficultyOptionObserver = new MutationObserver(difficultyOptionCheck);
-// difficultyOptionObserver.observe(document.getElementById("evalSelection"), {
-//   childList: true,
-// });
 const notyf = new Notyf({
   duration: 3000,
   position: {

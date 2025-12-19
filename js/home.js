@@ -1,27 +1,108 @@
 import { processSelections } from "./other/utils.js";
 
 const gameModesButtons = document.querySelectorAll(".gameModesButtons");
-const singlePlayerButton = document.getElementById("singlePlayerButton");
-const multiPlayerButton = document.getElementById("multiPlayerButton");
-const privateRoomButton = document.getElementById("privateRoomButton");
-const singlePlayerOptions = document.getElementById("singlePlayerOptions");
-const multiPlayerOptions = document.getElementById("multiPlayerOptions");
-const privateRoomOptions = document.getElementById("privateRoomOptions");
-const roundsNext = document.getElementById("roundsNext");
-const roundsPrev = document.getElementById("roundsPrev");
+const classicButton = document.getElementById("classicButton");
+const dailyChallengeButton = document.getElementById("dailyChallengeButton");
+const endlessModeButton = document.getElementById("endlessModeButton");
+
+// Unified elements
+const optionTitle = document.getElementById("optionTitle");
+const optionsContainer = document.getElementById("optionsContainer");
+const optionPlaceholder = document.getElementById("optionPlaceholder");
+const startGameButton = document.getElementById("startGameButton");
+
+// Option controls (single set for all modes)
 const timeControlNext = document.getElementById("timeControlNext");
 const timeControlPrev = document.getElementById("timeControlPrev");
 const evalNext = document.getElementById("evalNext");
 const evalPrev = document.getElementById("evalPrev");
 const timeLimitNext = document.getElementById("timeLimitNext");
 const timeLimitPrev = document.getElementById("timeLimitPrev");
+
 const musicToggleButton = document.getElementById("musicToggleButton");
 const music = document.getElementById("music");
-const fullscreenToggleButton = document.getElementById(
-  "fullscreenToggleButton"
-);
+const fullscreenToggleButton = document.getElementById("fullscreenToggleButton");
 
-// Add event listener to each button
+// Initialize constants
+const distinctTimeControlOptions = ["Bullet", "Blitz", "Rapid", "Classical"];
+const timeControlOptions = ["Any", ...distinctTimeControlOptions];
+const timeLimitOptions = ["None", "90s", "45s"];
+const evalOptions = ["Yes", "No"];
+
+// Track the current game mode
+export let currentGameMode = "classic";
+
+// Store options for each game mode
+const gameModeOptions = {
+  classic: {
+    roundsSelection: "5",  // Always 5 for classic
+    timeControlSelection: timeControlOptions[0],
+    evalSelection: evalOptions[0],
+    timeLimitSelection: timeLimitOptions[0],
+  },
+  endless: {
+    roundsSelection: "Endless",  // Always endless for endless mode
+    timeControlSelection: timeControlOptions[0],
+    evalSelection: evalOptions[0],
+    timeLimitSelection: timeLimitOptions[0],
+  },
+  daily: {
+    // Daily challenge options (placeholder for now)
+  }
+};
+
+// Current option indices
+let timeControlIndex = 0;
+let evalIndex = 0;
+let timeLimitIndex = 0;
+
+export let gameConfigs = processSelections(gameModeOptions.classic);
+
+let intervalId;
+
+// Function to update UI based on current game mode
+function updateUIForMode() {
+  const currentOptions = gameModeOptions[currentGameMode];
+
+  if (currentGameMode === "daily") {
+    // Daily Challenge - Coming Soon
+    optionTitle.textContent = "Coming Soon!";
+    optionsContainer.style.display = "none";
+    optionPlaceholder.style.display = "block";
+    startGameButton.textContent = "Play Daily";
+    startGameButton.disabled = true;
+  } else {
+    // Classic or Endless mode
+    optionTitle.textContent = "Options";
+    optionsContainer.style.display = "grid";
+    optionPlaceholder.style.display = "none";
+    startGameButton.disabled = false;
+
+    // Update button text
+    if (currentGameMode === "classic") {
+      startGameButton.textContent = "Play Classic";
+    } else if (currentGameMode === "endless") {
+      startGameButton.textContent = "Play Endless";
+    }
+
+    // Update option displays
+    document.getElementById("timeControlSelection").textContent = currentOptions.timeControlSelection;
+    document.getElementById("evalSelection").textContent = currentOptions.evalSelection;
+    document.getElementById("timeLimitSelection").textContent = currentOptions.timeLimitSelection;
+
+    // Reset indices to match current values
+    timeControlIndex = timeControlOptions.indexOf(currentOptions.timeControlSelection);
+    evalIndex = evalOptions.indexOf(currentOptions.evalSelection);
+    timeLimitIndex = timeLimitOptions.indexOf(currentOptions.timeLimitSelection);
+  }
+
+  // Update game configs
+  if (currentGameMode !== "daily") {
+    gameConfigs = processSelections(gameModeOptions[currentGameMode]);
+  }
+}
+
+// Add event listener to each game mode button
 gameModesButtons.forEach((button) => {
   button.addEventListener("click", () => {
     // Remove 'active' class from all buttons
@@ -32,390 +113,154 @@ gameModesButtons.forEach((button) => {
     // Add 'active' class to the clicked button
     button.classList.add("active");
 
-    // Show/hide options based on the clicked button
-    if (button === singlePlayerButton) {
-      singlePlayerOptions.style.display = "flex";
-      multiPlayerOptions.style.display = "none";
-      privateRoomOptions.style.display = "none";
-    } else if (button === multiPlayerButton) {
-      singlePlayerOptions.style.display = "none";
-      multiPlayerOptions.style.display = "flex";
-      privateRoomOptions.style.display = "none";
-    } else if (button === privateRoomButton) {
-      singlePlayerOptions.style.display = "none";
-      multiPlayerOptions.style.display = "none";
-      privateRoomOptions.style.display = "flex";
+    // Update current game mode
+    if (button === classicButton) {
+      currentGameMode = "classic";
+    } else if (button === dailyChallengeButton) {
+      currentGameMode = "daily";
+    } else if (button === endlessModeButton) {
+      currentGameMode = "endless";
     }
+
+    // Update UI for the selected mode
+    updateUIForMode();
   });
 });
 
-singlePlayerButton.click();
-const distinctTimeControlOptions = ["Bullet", "Blitz", "Rapid", "Classical"];
-const roundsOptions = ["5", "10", "Endless"];
-const timeControlOptions = ["Any", ...distinctTimeControlOptions];
-const timeLimitOptions = ["None", "90s", "45s"];
-const evalOptions = ["Yes", "No"];
+// Click classic button by default on page load
+classicButton.click();
 
-let optionSelections = {
-  roundsSelection: roundsOptions[0],
-  timeControlSelection: timeControlOptions[0],
-  evalSelection: evalOptions[0],
-  timeLimitSelection: timeLimitOptions[0],
-};
-export let gameConfigs = processSelections(optionSelections);
+function updateOption(optionType, action) {
+  if (currentGameMode === "daily") return;
 
-let roundsOptionsListCurrentIndex = 0;
-let timeControlOptionsListCurrentIndex = 0;
-let evalOptionsListCurrentIndex = 0;
-let timeLimitOptionsListCurrentIndex = 0;
-let intervalId;
+  let index, options;
 
-function updateOptionsSelection(optionLabel, action, valueList, currentIndex) {
-  if (action === "prev") {
-    currentIndex = (currentIndex - 1 + valueList.length) % valueList.length;
-  } else if (action === "next") {
-    currentIndex = (currentIndex + 1) % valueList.length;
+  switch(optionType) {
+    case "timeControl":
+      options = timeControlOptions;
+      index = timeControlIndex;
+      break;
+    case "eval":
+      options = evalOptions;
+      index = evalIndex;
+      break;
+    case "timeLimit":
+      options = timeLimitOptions;
+      index = timeLimitIndex;
+      break;
   }
 
-  document.getElementById(optionLabel).textContent = valueList[currentIndex];
-  optionSelections[optionLabel] = valueList[currentIndex];
-  gameConfigs = processSelections(optionSelections);
-  return currentIndex;
+  if (action === "prev") {
+    index = (index - 1 + options.length) % options.length;
+  } else if (action === "next") {
+    index = (index + 1) % options.length;
+  }
+
+  // Update the index and UI
+  switch(optionType) {
+    case "timeControl":
+      timeControlIndex = index;
+      document.getElementById("timeControlSelection").textContent = options[index];
+      gameModeOptions[currentGameMode].timeControlSelection = options[index];
+      break;
+    case "eval":
+      evalIndex = index;
+      document.getElementById("evalSelection").textContent = options[index];
+      gameModeOptions[currentGameMode].evalSelection = options[index];
+      break;
+    case "timeLimit":
+      timeLimitIndex = index;
+      document.getElementById("timeLimitSelection").textContent = options[index];
+      gameModeOptions[currentGameMode].timeLimitSelection = options[index];
+      break;
+  }
+
+  // Update game configs
+  gameConfigs = processSelections(gameModeOptions[currentGameMode]);
 }
 
-function startContinuousUpdate(optionLabel, action, valueList, currentIndex) {
+function startContinuousUpdate(optionType, action) {
   if (intervalId) clearInterval(intervalId);
   intervalId = setInterval(() => {
-    if (action === "next") {
-      currentIndex = updateOptionsSelection(
-        optionLabel,
-        "next",
-        valueList,
-        currentIndex
-      );
-    } else if (action === "prev") {
-      currentIndex = updateOptionsSelection(
-        optionLabel,
-        "prev",
-        valueList,
-        currentIndex
-      );
-    }
+    updateOption(optionType, action);
   }, 200);
-  return currentIndex;
 }
 
 function stopContinuousUpdate() {
   clearInterval(intervalId);
 }
 
-// Update options on click
-roundsNext.addEventListener("click", () => {
-  roundsOptionsListCurrentIndex = updateOptionsSelection(
-    "roundsSelection",
-    "next",
-    roundsOptions,
-    roundsOptionsListCurrentIndex
-  );
-  optionSelections.rounds = optionSelections[roundsOptionsListCurrentIndex];
-});
+// Click handlers for option buttons
+timeControlNext.addEventListener("click", () => updateOption("timeControl", "next"));
+timeControlPrev.addEventListener("click", () => updateOption("timeControl", "prev"));
+evalNext.addEventListener("click", () => updateOption("eval", "next"));
+evalPrev.addEventListener("click", () => updateOption("eval", "prev"));
+timeLimitNext.addEventListener("click", () => updateOption("timeLimit", "next"));
+timeLimitPrev.addEventListener("click", () => updateOption("timeLimit", "prev"));
 
-roundsPrev.addEventListener("click", () => {
-  roundsOptionsListCurrentIndex = updateOptionsSelection(
-    "roundsSelection",
-    "prev",
-    roundsOptions,
-    roundsOptionsListCurrentIndex
-  );
-});
-
-timeControlNext.addEventListener("click", () => {
-  timeControlOptionsListCurrentIndex = updateOptionsSelection(
-    "timeControlSelection",
-    "next",
-    timeControlOptions,
-    timeControlOptionsListCurrentIndex
-  );
-});
-
-timeControlPrev.addEventListener("click", () => {
-  timeControlOptionsListCurrentIndex = updateOptionsSelection(
-    "timeControlSelection",
-    "prev",
-    timeControlOptions,
-    timeControlOptionsListCurrentIndex
-  );
-});
-
-evalNext.addEventListener("click", () => {
-  evalOptionsListCurrentIndex = updateOptionsSelection(
-    "evalSelection",
-    "next",
-    evalOptions,
-    evalOptionsListCurrentIndex
-  );
-});
-
-evalPrev.addEventListener("click", () => {
-  evalOptionsListCurrentIndex = updateOptionsSelection(
-    "evalSelection",
-    "prev",
-    evalOptions,
-    evalOptionsListCurrentIndex
-  );
-});
-
-timeLimitNext.addEventListener("click", () => {
-  timeLimitOptionsListCurrentIndex = updateOptionsSelection(
-    "timeLimitSelection",
-    "next",
-    timeLimitOptions,
-    timeLimitOptionsListCurrentIndex
-  );
-});
-
-timeLimitPrev.addEventListener("click", () => {
-  timeLimitOptionsListCurrentIndex = updateOptionsSelection(
-    "timeLimitSelection",
-    "prev",
-    timeLimitOptions,
-    timeLimitOptionsListCurrentIndex
-  );
-});
-
-// Start continuous update on mousedown
-roundsNext.addEventListener("mousedown", () => {
-  startContinuousUpdate(
-    "roundsSelection",
-    "next",
-    roundsOptions,
-    roundsOptionsListCurrentIndex
-  );
-});
-
-roundsPrev.addEventListener("mousedown", () => {
-  startContinuousUpdate(
-    "roundsSelection",
-    "prev",
-    roundsOptions,
-    roundsOptionsListCurrentIndex
-  );
-});
-
-timeControlNext.addEventListener("mousedown", () => {
-  startContinuousUpdate(
-    "timeControlSelection",
-    "next",
-    timeControlOptions,
-    timeControlOptionsListCurrentIndex
-  );
-});
-
-timeControlPrev.addEventListener("mousedown", () => {
-  startContinuousUpdate(
-    "timeControlSelection",
-    "prev",
-    timeControlOptions,
-    timeControlOptionsListCurrentIndex
-  );
-});
-
-evalNext.addEventListener("mousedown", () => {
-  startContinuousUpdate(
-    "evalSelection",
-    "next",
-    evalOptions,
-    evalOptionsListCurrentIndex
-  );
-});
-
-evalPrev.addEventListener("mousedown", () => {
-  startContinuousUpdate(
-    "evalSelection",
-    "prev",
-    evalOptions,
-    evalOptionsListCurrentIndex
-  );
-});
-
-timeLimitNext.addEventListener("mousedown", () => {
-  startContinuousUpdate(
-    "timeLimitSelection",
-    "next",
-    timeLimitOptions,
-    timeLimitOptionsListCurrentIndex
-  );
-});
-
-timeLimitPrev.addEventListener("mousedown", () => {
-  startContinuousUpdate(
-    "timeLimitSelection",
-    "prev",
-    timeLimitOptions,
-    timeLimitOptionsListCurrentIndex
-  );
-});
+// Mousedown handlers for continuous update
+timeControlNext.addEventListener("mousedown", () => startContinuousUpdate("timeControl", "next"));
+timeControlPrev.addEventListener("mousedown", () => startContinuousUpdate("timeControl", "prev"));
+evalNext.addEventListener("mousedown", () => startContinuousUpdate("eval", "next"));
+evalPrev.addEventListener("mousedown", () => startContinuousUpdate("eval", "prev"));
+timeLimitNext.addEventListener("mousedown", () => startContinuousUpdate("timeLimit", "next"));
+timeLimitPrev.addEventListener("mousedown", () => startContinuousUpdate("timeLimit", "prev"));
 
 // Stop continuous update on mouseup or mouseleave
 document.addEventListener("mouseup", stopContinuousUpdate);
 document.addEventListener("mouseleave", stopContinuousUpdate);
 
-// Scroll event to iterate through options
-
-const roundsWheelEvent = (event) => {
+// Wheel event handlers
+const handleWheelEvent = (optionType, event) => {
   event.preventDefault();
   if (event.deltaY > 0) {
-    // Scroll down
-    roundsOptionsListCurrentIndex = updateOptionsSelection(
-      "roundsSelection",
-      "next",
-      roundsOptions,
-      roundsOptionsListCurrentIndex
-    );
-    roundsNext.classList.add("active");
+    updateOption(optionType, "next");
+    document.getElementById(optionType + "Next").classList.add("active");
   } else if (event.deltaY < 0) {
-    // Scroll up
-    roundsOptionsListCurrentIndex = updateOptionsSelection(
-      "roundsSelection",
-      "prev",
-      roundsOptions,
-      roundsOptionsListCurrentIndex
-    );
-    roundsPrev.classList.add("active");
+    updateOption(optionType, "prev");
+    document.getElementById(optionType + "Prev").classList.add("active");
   }
   setTimeout(() => {
-    roundsNext.classList.remove("active");
-    roundsPrev.classList.remove("active");
-  }, 200);
-};
-
-const timeControlWheelEvent = (event) => {
-  event.preventDefault();
-  if (event.deltaY > 0) {
-    // Scroll down
-    timeControlOptionsListCurrentIndex = updateOptionsSelection(
-      "timeControlSelection",
-      "next",
-      timeControlOptions,
-      timeControlOptionsListCurrentIndex
-    );
-    timeControlNext.classList.add("active");
-  } else if (event.deltaY < 0) {
-    // Scroll up
-    timeControlOptionsListCurrentIndex = updateOptionsSelection(
-      "timeControlSelection",
-      "prev",
-      timeControlOptions,
-      timeControlOptionsListCurrentIndex
-    );
-    timeControlPrev.classList.add("active");
-  }
-  setTimeout(() => {
-    timeControlNext.classList.remove("active");
-    timeControlPrev.classList.remove("active");
-  }, 200);
-};
-
-const evalWheelEvent = (event) => {
-  event.preventDefault(); // Prevent default scrolling behavior
-  if (event.deltaY > 0) {
-    // Scroll down
-    evalOptionsListCurrentIndex = updateOptionsSelection(
-      "evalSelection",
-      "next",
-      evalOptions,
-      evalOptionsListCurrentIndex
-    );
-    evalNext.classList.add("active");
-  } else if (event.deltaY < 0) {
-    // Scroll up
-    evalOptionsListCurrentIndex = updateOptionsSelection(
-      "evalSelection",
-      "prev",
-      evalOptions,
-      evalOptionsListCurrentIndex
-    );
-    evalPrev.classList.add("active");
-  }
-  setTimeout(() => {
-    evalNext.classList.remove("active");
-    evalPrev.classList.remove("active");
-  }, 200);
-};
-
-const timeLimitWheelEvent = (event) => {
-  event.preventDefault(); // Prevent default scrolling behavior
-  if (event.deltaY > 0) {
-    // Scroll down
-    timeLimitOptionsListCurrentIndex = updateOptionsSelection(
-      "timeLimitSelection",
-      "next",
-      timeLimitOptions,
-      timeLimitOptionsListCurrentIndex
-    );
-    timeLimitNext.classList.add("active");
-  } else if (event.deltaY < 0) {
-    // Scroll up
-    timeLimitOptionsListCurrentIndex = updateOptionsSelection(
-      "timeLimitSelection",
-      "prev",
-      timeLimitOptions,
-      timeLimitOptionsListCurrentIndex
-    );
-    timeLimitPrev.classList.add("active");
-  }
-  setTimeout(() => {
-    timeLimitNext.classList.remove("active");
-    timeLimitPrev.classList.remove("active");
+    document.getElementById(optionType + "Next").classList.remove("active");
+    document.getElementById(optionType + "Prev").classList.remove("active");
   }, 200);
 };
 
 export function enableSelectionWheelEvents() {
-  document
-    .getElementById("evalSelection")
-    .addEventListener("wheel", evalWheelEvent);
-  document
-    .getElementById("roundsSelection")
-    .addEventListener("wheel", roundsWheelEvent);
-  document
-    .getElementById("timeControlSelection")
-    .addEventListener("wheel", timeControlWheelEvent);
-  document
-    .getElementById("timeLimitSelection")
-    .addEventListener("wheel", timeLimitWheelEvent);
+  document.getElementById("evalSelection")?.addEventListener("wheel", (e) => handleWheelEvent("eval", e));
+  document.getElementById("timeControlSelection")?.addEventListener("wheel", (e) => handleWheelEvent("timeControl", e));
+  document.getElementById("timeLimitSelection")?.addEventListener("wheel", (e) => handleWheelEvent("timeLimit", e));
 }
 
 export function disableSelectionWheelEvents() {
-  document
-    .getElementById("evalSelection")
-    .removeEventListener("wheel", evalWheelEvent);
-  document
-    .getElementById("roundsSelection")
-    .removeEventListener("wheel", roundsWheelEvent);
-  document
-    .getElementById("timeControlSelection")
-    .removeEventListener("wheel", timeControlWheelEvent);
-  document
-    .getElementById("timeLimitSelection")
-    .removeEventListener("wheel", timeLimitWheelEvent);
+  // Create new elements to remove all event listeners
+  const evalEl = document.getElementById("evalSelection");
+  const timeControlEl = document.getElementById("timeControlSelection");
+  const timeLimitEl = document.getElementById("timeLimitSelection");
+
+  if (evalEl) {
+    const newEval = evalEl.cloneNode(true);
+    evalEl.parentNode.replaceChild(newEval, evalEl);
+  }
+  if (timeControlEl) {
+    const newTimeControl = timeControlEl.cloneNode(true);
+    timeControlEl.parentNode.replaceChild(newTimeControl, timeControlEl);
+  }
+  if (timeLimitEl) {
+    const newTimeLimit = timeLimitEl.cloneNode(true);
+    timeLimitEl.parentNode.replaceChild(newTimeLimit, timeLimitEl);
+  }
 }
 
-// Initialize the selections with the first value
-document.getElementById("roundsSelection").textContent =
-  optionSelections.roundsSelection;
-document.getElementById("timeControlSelection").textContent =
-  optionSelections.timeControlSelection;
-document.getElementById("evalSelection").textContent =
-  optionSelections.evalSelection;
-document.getElementById("timeLimitSelection").textContent =
-  optionSelections.timeLimitSelection;
+// Initialize wheel events
 enableSelectionWheelEvents();
 
+// Music toggle
 musicToggleButton.addEventListener("click", () => {
   musicToggleButton.classList.toggle("active");
   if (music.paused) {
     musicToggleButton.title = "Turn Music Off";
-    music.volume = 0.7; // Set the volume to 0.7
+    music.volume = 0.7;
     music.play();
   } else {
     musicToggleButton.title = "Turn Music On";
@@ -423,25 +268,22 @@ musicToggleButton.addEventListener("click", () => {
   }
 });
 
+// Fullscreen toggle
 fullscreenToggleButton.addEventListener("click", () => {
   if (!document.fullscreenElement) {
-    // Enter fullscreen mode
     document.documentElement.requestFullscreen().catch((err) => {
-      console.error(
-        `Error attempting to enable fullscreen mode: ${err.message} (${err.name})`
-      );
+      console.error(`Error attempting to enable fullscreen mode: ${err.message} (${err.name})`);
     });
   } else {
-    // Exit fullscreen mode
     document.exitFullscreen();
   }
 });
 
-// Update button text and tooltip based on fullscreen status
+// Update button text based on fullscreen status
 document.addEventListener("fullscreenchange", () => {
   if (document.fullscreenElement) {
-    fullscreenToggleButton.title = "Exit Fullscreen"; // Update tooltip
+    fullscreenToggleButton.title = "Exit Fullscreen";
   } else {
-    fullscreenToggleButton.title = "Fullscreen"; // Update tooltip
+    fullscreenToggleButton.title = "Fullscreen";
   }
 });

@@ -181,19 +181,15 @@ body {
   border-radius: 5px;
   border: 0;
   cursor: pointer;
-  color: var(--black);
-  font-size: clamp(1.125rem, 0.186rem + 4.356vw, 2.5rem);
+  color: var(--black); 
+  font-size: clamp(1.125rem, 0.272rem + 3.956vw, 2.25rem); /* min 345 max 800 */
   display: grid;
   grid-template-rows: 1fr 1fr; /* Two equal rows */
   align-items: center; /* Center items vertically */
   justify-items: center; /* Center items horizontally */
   transition: background-color 0.3s ease, color 0.3s ease;
   gap: clamp(0rem, -0.758rem + 3.516vw, 1rem); /* min 345 max 800 */
-  padding: clamp(0.5rem, -2.154rem + 12.308vw, 4rem) 0.25rem; /* min 345 max 800 */
-}
-
-#privateRoomButtonLabel {
-  font-size: clamp(0.844rem, 0.139rem + 3.267vw, 1.875rem);
+  padding: clamp(0.5rem, -2.154rem + 12.308vw, 4rem) 0.5rem; /* min 345 max 800 */
 }
 
 .gameModesButtons:hover {
@@ -207,7 +203,7 @@ body {
 }
 
 /* Game Modes - SVG */
-#singlePlayerButton svg {
+#classicButton svg {
   stroke: var(--black);
   fill: var(--black);
   transition: stroke 0.3s ease, fill 0.3s ease;
@@ -215,41 +211,41 @@ body {
   height: clamp(2rem, 1.382rem + 2.866vw, 2.815rem); /* min 345 max 800 */
 }
 
-#singlePlayerButton.active svg {
+#classicButton.active svg {
   stroke: var(--white);
   fill: var(--white);
 }
 
-#multiPlayerButton svg {
+#dailyChallengeButton svg {
   width: clamp(2.223rem, 1.538rem + 3.174vw, 3.125rem); /* min 345 max 800 */
   height: clamp(2.223rem, 1.538rem + 3.174vw, 3.125rem); /* min 345 max 800 */
 }
 
-#multiPlayerButton svg g:nth-of-type(1) {
+#dailyChallengeButton svg g:nth-of-type(1) {
   stroke: var(--black);
   fill: var(--black);
   stroke-width: 0;
   transition: stroke 0.1s ease, fill 0.1s ease, stroke-width 0.1s ease;
 }
 
-#multiPlayerButton.active svg g:nth-of-type(1) {
+#dailyChallengeButton.active svg g:nth-of-type(1) {
   stroke: var(--primary-color);
   fill: var(--white);
 }
 
-#multiPlayerButton svg g:nth-of-type(2) {
+#dailyChallengeButton svg g:nth-of-type(2) {
   stroke: var(--white);
   fill: var(--white);
   stroke-width: 1.25;
 }
 
-#multiPlayerButton.active svg g:nth-of-type(2) {
+#dailyChallengeButton.active svg g:nth-of-type(2) {
   stroke: var(--primary-color);
   fill: var(--primary-color);
   stroke-width: 1.5;
 }
 
-#privateRoomButton svg {
+#endlessModeButton svg {
   fill: var(--black);
   stroke: var(--black);
   stroke-width: 1;
@@ -258,17 +254,17 @@ body {
   height: clamp(2.311rem, 1.599rem + 3.301vw, 3.25rem); /* min 345 max 800 */
 }
 
-#privateRoomButton.active svg {
+#endlessModeButton.active svg {
   stroke: var(--white);
   fill: var(--white);
 }
 
-#privateRoomButton svg g path:nth-of-type(4) {
+#endlessModeButton svg g path:nth-of-type(4) {
   stroke: var(--white);
   transition: stroke 0.1s ease;
 }
 
-#privateRoomButton.active svg g path:nth-of-type(4) {
+#endlessModeButton.active svg g path:nth-of-type(4) {
   stroke: var(--primary-color);
 }
 
@@ -296,18 +292,16 @@ body {
   margin-bottom: clamp(2rem, 1.459rem + 2.51vw, 2.4rem); /* min 345 max 600 */
 }
 
-#singlePlayerOptions,
-#multiPlayerOptions,
-#privateRoomOptions {
+#gameOptions {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
 }
 
-#singlePlayerOptionsContainer {
+#optionsContainer {
   display: grid;
-  grid-template-rows: repeat(4, auto);
+  grid-template-rows: repeat(3, auto);
   grid-template-columns:
     clamp(6.8rem, 3.824rem + 13.804vw, 9rem) /* min 345 max 600 */
     auto
@@ -316,25 +310,22 @@ body {
   row-gap: clamp(1.2rem, 0.659rem + 2.51vw, 1.6rem); /* min 345 max 600 */
 }
 
-.singlePlayerOptionButtons {
+.optionButtons {
   display: contents;
 }
 
-#roundsLabel,
 #timeControlLabel,
 #evalLabel,
 #timeLimitLabel {
   grid-column: 1;
 }
 
-#roundsPrev,
 #timeControlPrev,
 #evalPrev,
 #timeLimitPrev {
   grid-column: 2;
 }
 
-#roundsSelection,
 #timeControlSelection,
 #evalSelection,
 #timeLimitSelection {
@@ -343,29 +334,23 @@ body {
   cursor: default;
 }
 
-#roundsNext,
 #timeControlNext,
 #evalNext,
 #timeLimitNext {
   grid-column: 4;
 }
 
-.singlePlayerOptionButtons div {
+.optionButtons div {
   font-size: clamp(1rem, 0.662rem + 1.569vw, 1.25rem); /* min 345 max 600 */
 }
 
 .optionPlaceholder {
   padding-top: calc(
-    3 * clamp(1.2rem, 0.659rem + 2.51vw, 1.6rem) + 4 *
+    2 * clamp(1.2rem, 0.659rem + 2.51vw, 1.6rem) + 3 *
       clamp(1rem, 0.662rem + 1.569vw, 1.25rem)
   );
 }
 
-#roundsSelection.endlessStyle {
-  color: #1ffed5;
-}
-
-#roundsSelection.endlessStyle::before,
 #evalSelection.hardStyle::before {
   font-family: sans-serif;
 }

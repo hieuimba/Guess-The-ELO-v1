@@ -45,8 +45,8 @@
                 <span>Guess The ELO</span>
             </div>
             <div id="gameModes">
-                <button class="gameModesButtons" id="singlePlayerButton">
-                    <div>Singleplayer</div>
+                <button class="gameModesButtons" id="classicButton">
+                    <div>Classic</div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" id="pawnIcon" viewBox="0 0 45 45"
                         preserveAspectRatio="xMidYMid meet">
                         <path
@@ -55,8 +55,8 @@
                     </svg>
                 </button>
                 <div></div> <!-- Empty div for spacing -->
-                <button class="gameModesButtons" id="multiPlayerButton">
-                    <div>Multiplayer</div>
+                <button class="gameModesButtons" id="dailyChallengeButton">
+                    <div>Daily Challenge</div>
 
 
                     <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" id="knightIcon" viewBox="0 0 45 45"
@@ -74,8 +74,8 @@
 
                 </button>
                 <div></div> <!-- Empty div for spacing -->
-                <button class="gameModesButtons" id="privateRoomButton">
-                    <div id="privateRoomButtonLabel">Create Private Room</div>
+                <button class="gameModesButtons" id="endlessModeButton">
+                    <div>Endless Mode</div>
 
                     <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" id="knightIcon" viewBox="0 0 45 45"
                         preserveAspectRatio="xMidYMid meet">
@@ -93,25 +93,11 @@
                 </button>
             </div>
             <div id="optionsMenu">
-                <!-- singlePlayerOptions -->
-                <div id="singlePlayerOptions">
-                    <div class="optionTitle">Options</div>
-                    <div id="singlePlayerOptionsContainer">
-                        <div id="roundsOptions" class="singlePlayerOptionButtons">
-                            <div id="roundsLabel">Rounds</div>
-                            <button id="roundsPrev" class="optionNavButton">
-                                <svg class="triangle" viewBox="0 0 48 41" style=" transform: rotate(-90deg);">
-                                    <path d="M 24 4 L 43 37 L 5 37 z" />
-                                </svg>
-                            </button>
-                            <div id="roundsSelection"></div>
-                            <button id="roundsNext" class="optionNavButton">
-                                <svg class="triangle" viewBox="0 0 48 41" style=" transform: rotate(90deg);">
-                                    <path d="M 24 4 L 43 37 L 5 37 z" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div id="timeLimitOptions" class="singlePlayerOptionButtons">
+                <!-- gameOptions - unified for all modes -->
+                <div id="gameOptions">
+                    <div class="optionTitle" id="optionTitle">Options</div>
+                    <div id="optionsContainer">
+                        <div id="timeLimitOptions" class="optionButtons">
                             <div id="timeLimitLabel">Time Limit</div>
                             <button id="timeLimitPrev" class="optionNavButton">
                                 <svg class="triangle" viewBox="0 0 48 41" style=" transform: rotate(-90deg);">
@@ -125,7 +111,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <div id="evalOptions" class="singlePlayerOptionButtons">
+                        <div id="evalOptions" class="optionButtons">
                             <div id="evalLabel">Evaluation</div>
                             <button id="evalPrev" class="optionNavButton">
                                 <svg class="triangle" viewBox="0 0 48 41" style=" transform: rotate(-90deg);">
@@ -139,7 +125,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <div id="timeControlOptions" class="singlePlayerOptionButtons">
+                        <div id="timeControlOptions" class="optionButtons">
                             <div id="timeControlLabel">Time Control</div>
                             <button id="timeControlPrev" class="optionNavButton">
                                 <svg class="triangle" viewBox="0 0 48 41" style=" transform: rotate(-90deg);">
@@ -153,21 +139,11 @@
                                 </svg>
                             </button>
                         </div>
-
                     </div>
-                    <button id="singlePlayerStartButton" class="startButton">Start Game</button>
-                </div>
-                <!-- multiPlayerOptions -->
-                <div id="multiPlayerOptions" style="display: none">
-                    <div class="optionTitle">Coming Soon!</div>
-                    <div class="optionPlaceholder"></div>
-                    <button id="multiplayerStartButton" class="startButton">Find Match</button>
-                </div>
-                <!-- privateRoomOptions -->
-                <div id="privateRoomOptions" style="display: none">
-                    <div class="optionTitle">Coming Soon!</div>
-                    <div class="optionPlaceholder"></div>
-                    <button id="privateRoomButton" class="startButton">Create Room</button>
+                    <!-- Placeholder for Daily Challenge coming soon message -->
+                    <div id="optionPlaceholder" class="optionPlaceholder" style="display: none"></div>
+                    <!-- Single unified start button -->
+                    <button id="startGameButton" class="startButton">Play Classic</button>
                 </div>
             </div>
         </div>
