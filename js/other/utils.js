@@ -86,14 +86,9 @@ function repeatAndSumRandomInt(min, max, times) {
   return sum;
 }
 
-// Explode timecontrol & eval selections into arrays, add random orientation
+// Process game option selections
 export function processSelections(selections) {
-  selections.roundsSelection =
-    selections.roundsSelection === "Endless"
-      ? "300"
-      : selections.roundsSelection;
   const processedSelections = {
-    rounds: selections.roundsSelection,
     evaluation: selections.evalSelection,
     timeControls: selections.timeControlSelection,
     timeLimit: selections.timeLimitSelection,

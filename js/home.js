@@ -35,13 +35,11 @@ export let currentGameMode = "classic";
 // Store options for each game mode
 const gameModeOptions = {
   classic: {
-    roundsSelection: "5",  // Always 5 for classic
     timeControlSelection: timeControlOptions[0],
     evalSelection: evalOptions[0],
     timeLimitSelection: timeLimitOptions[0],
   },
   endless: {
-    roundsSelection: "Endless",  // Always endless for endless mode
     timeControlSelection: timeControlOptions[0],
     evalSelection: evalOptions[0],
     timeLimitSelection: timeLimitOptions[0],

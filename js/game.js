@@ -161,7 +161,7 @@ mainMenuButton.addEventListener("click", () => {
 
 function updateResultScreen() {
   const resultHeader = document.getElementById("resultHeader");
-  if (maxRounds > 10) {
+  if (currentGameMode === "endless") {
     if (currentRound > 10) {
       resultHeader.textContent = getRandomElement(resultHeaderAllCorrect);
     } else if (currentRound > 3) {
@@ -170,27 +170,18 @@ function updateResultScreen() {
       resultHeader.textContent = getRandomElement(resultHeaderNegative);
     }
   } else {
-    if (maxRounds === 5) {
-      if (correctCount <= 2) {
-        resultHeader.textContent = getRandomElement(resultHeaderNegative);
-      } else if (correctCount > 2 && correctCount <= 4) {
-        resultHeader.textContent = getRandomElement(resultHeaderPositive);
-      } else {
-        resultHeader.textContent = getRandomElement(resultHeaderAllCorrect);
-      }
-    } else if (maxRounds === 10) {
-      if (correctCount <= 2) {
-        resultHeader.textContent = getRandomElement(resultHeaderNegative);
-      } else if (correctCount > 2 && correctCount <= 9) {
-        resultHeader.textContent = getRandomElement(resultHeaderPositive);
-      } else {
-        resultHeader.textContent = getRandomElement(resultHeaderAllCorrect);
-      }
+    // Classic mode (always 5 rounds)
+    if (correctCount <= 2) {
+      resultHeader.textContent = getRandomElement(resultHeaderNegative);
+    } else if (correctCount > 2 && correctCount <= 4) {
+      resultHeader.textContent = getRandomElement(resultHeaderPositive);
+    } else {
+      resultHeader.textContent = getRandomElement(resultHeaderAllCorrect);
     }
   }
 
   const resultSummary = document.getElementById("resultSummary");
-  if (maxRounds > 10) {
+  if (currentGameMode === "endless") {
     resultSummary.textContent = `You made it to round ${currentRound}!`;
   } else {
     resultSummary.textContent = `You got ${correctCount} out of ${maxRounds} games right`;
@@ -380,7 +371,7 @@ export function endRound(answer, button) {
 }
 
 function addHeart() {
-  if (maxRounds > 10 && livesCount < 5) {
+  if (currentGameMode === "endless" && livesCount < 5) {
     const heartsContainer = document.getElementById("heartsContainer");
     heartsContainer.innerHTML = ""; // Clear previous contents
 
@@ -433,7 +424,7 @@ function addHeart() {
 }
 
 export function removeHeart() {
-  if (maxRounds > 10) {
+  if (currentGameMode === "endless") {
     livesCount--;
     const heart = document.getElementById(`heart${livesCount}`);
     heart.classList.add("shrink");
@@ -489,7 +480,7 @@ function createScoreText(currentScore) {
 function createRoundsText() {
   let roundsText;
 
-  if (maxRounds > 10) {
+  if (currentGameMode === "endless") {
     roundsText = `Round ${currentRound}`;
   } else {
     roundsText = `${currentRound} of ${maxRounds}`;
@@ -498,7 +489,7 @@ function createRoundsText() {
 }
 
 function generateHeartIcons() {
-  if (maxRounds > 10) {
+  if (currentGameMode === "endless") {
     const heartsContainer = document.getElementById("heartsContainer");
     heartsContainer.innerHTML = ""; // Clear previous contents
 
