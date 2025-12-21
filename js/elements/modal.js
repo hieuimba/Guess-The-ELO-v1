@@ -10,40 +10,40 @@ const isOpenClass = "modal-is-open";
 const openingClass = "modal-is-opening";
 const closingClass = "modal-is-closing";
 const scrollbarWidthCssVar = "--pico-scrollbar-width";
-const animationDuration = 400; // ms
+const animationDuration = 0; // ms
 let visibleModal = null;
 
-const creditsButton = document.getElementById("creditsButton");
-const contactButton = document.getElementById("contactButton");
+const aboutButton = document.getElementById("aboutButton");
+const feedbackButton = document.getElementById("feedbackButton");
 const howToPlayButton = document.getElementById("howToPlayButton");
-const creditsCloseButton = document.getElementById("creditsCloseButton");
-const contactCloseButton = document.getElementById("contactCloseButton");
+const aboutCloseButton = document.getElementById("aboutCloseButton");
+const feedbackCloseButton = document.getElementById("feedbackCloseButton");
 const howToPlayCloseButton = document.getElementById("howToPlayCloseButton");
 
-creditsButton.addEventListener("click", (event) => {
+aboutButton.addEventListener("click", (event) => {
   event.preventDefault();
-  const modal = document.getElementById("creditModal");
+  const modal = document.getElementById("aboutModal");
   if (!modal) return;
   modal && (modal.open ? closeModal(modal) : openModal(modal));
 });
 
-creditsCloseButton.addEventListener("click", (event) => {
+aboutCloseButton.addEventListener("click", (event) => {
   event.preventDefault();
-  const modal = document.getElementById("creditModal");
+  const modal = document.getElementById("aboutModal");
   if (!modal) return;
   modal && (modal.open ? closeModal(modal) : openModal(modal));
 });
 
-contactButton.addEventListener("click", (event) => {
+feedbackButton.addEventListener("click", (event) => {
   event.preventDefault();
-  const modal = document.getElementById("contactModal");
+  const modal = document.getElementById("feedbackModal");
   if (!modal) return;
   modal && (modal.open ? closeModal(modal) : openModal(modal));
 });
 
-contactCloseButton.addEventListener("click", (event) => {
+feedbackCloseButton.addEventListener("click", (event) => {
   event.preventDefault();
-  const modal = document.getElementById("contactModal");
+  const modal = document.getElementById("feedbackModal");
   if (!modal) return;
   modal && (modal.open ? closeModal(modal) : openModal(modal));
 });
@@ -115,3 +115,98 @@ const getScrollbarWidth = () => {
 const isScrollbarVisible = () => {
   return document.body.scrollHeight > screen.height;
 };
+
+// Feedback form handling
+const feedbackForm = document.getElementById("feedbackForm");
+const feedbackMessage = document.getElementById("feedbackMessage");
+
+feedbackForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  // Get form values
+  const name = document.getElementById("userName").value.trim();
+  const email = document.getElementById("userEmail").value.trim();
+  const feedback = document.getElementById("userFeedback").value.trim();
+
+  // Show loading state
+  const submitButton = document.getElementById("submitFeedback");
+  submitButton.setAttribute("aria-busy", "true");
+  submitButton.disabled = true;
+  feedbackMessage.style.display = "none";
+
+  // Discord webhook URL
+  const webhookUrl = "https://discord.com/api/webhooks/1452100953410109443/UbG0F05rQqs39nLiy2GB_VedTgZZcGSr7yjo-cUWc9CLu6-ev5zgXI9MtzRHkcTdVRZ5";
+
+  // Build fields array dynamically based on provided values
+  const fields = [];
+
+  if (name) {
+    fields.push({
+      name: "👤 Name",
+      value: name,
+      inline: true
+    });
+  }
+
+  if (email) {
+    fields.push({
+      name: "📧 Email",
+      value: email,
+      inline: true
+    });
+  }
+
+  fields.push({
+    name: "💬 Feedback",
+    value: feedback,
+    inline: false
+  });
+
+  // Create Discord embed message
+  const discordMessage = {
+    embeds: [{
+      title: "New Feedback - Guess The ELO",
+      color: 5814783, 
+      fields: fields,
+      timestamp: new Date().toISOString(),
+      footer: {
+        text: "Guess The ELO Feedback System"
+      }
+    }]
+  };
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(discordMessage)
+    });
+
+    if (response.ok) {
+      // Success
+      feedbackMessage.innerHTML = '<span style="color: oklch(62.7% 0.194 149.214); font-size: 1rem">Thank you for your feedback! 😄</span>';
+      feedbackMessage.style.display = "block";
+
+      // Clear form
+      feedbackForm.reset();
+
+      // Hide message after 5 seconds
+      setTimeout(() => {
+        feedbackMessage.style.display = "none";
+      }, 5000);
+    } else {
+      throw new Error("Failed to send feedback");
+    }
+  } catch (error) {
+    // Error
+    feedbackMessage.innerHTML = '<span style="color: oklch(57.7% 0.245 27.325);">Sorry, something went wrong. Please try again later.</span>';
+    feedbackMessage.style.display = "block";
+    console.error("Error sending feedback:", error);
+  } finally {
+    // Reset button state
+    submitButton.removeAttribute("aria-busy");
+    submitButton.disabled = false;
+  }
+});

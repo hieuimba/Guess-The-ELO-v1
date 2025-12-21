@@ -238,15 +238,19 @@
                     </article>
                 </dialog>
             </div>
-            <div id="credits">
-                <button id="creditsButton">Credits</button>
-                <dialog id="creditModal">
+            <div id="about">
+                <button id="aboutButton">About</button>
+                <dialog id="aboutModal">
                     <article>
                         <header>
-                            <button id="creditsCloseButton" aria-label="Close" rel="prev"></button>
+                            <button id="aboutCloseButton" aria-label="Close" rel="prev"></button>
                         </header>
-                        <p><strong>Guess the ELO</strong> is made possible by the free chess games and open-source
-                            chessboard from Lichess:</p>
+                        <p>Hi! I'm <strong>Ryan</strong> 👋 </p>
+                        <p>Guess The Elo is a personal project I built to combine my love for chess and programming. Hope you enjoy playing as much as I enjoyed building it!</p>
+                        <p>Learn more about my work and other projects at <a href="https://ryanngo.dev" target="_blank">ryanngo.dev</a>.</p>
+                        <hr style="opacity: 1;">
+                        <p>Guess the ELO is made possible by the free chess games and open-source
+                            chessboard from <strong>Lichess</strong>:</p>
                         <ul>
                             <li><a href="https://database.lichess.org" target="_blank">Lichess Database</a></li>
                             <li><a href="https://github.com/lichess-org/pgn-viewer" target="_blank">Lichess PGN
@@ -274,25 +278,32 @@
                     </article>
                 </dialog>
             </div>
-            <div id="contact">
-                <button id="contactButton">Contact</button>
-                <dialog id="contactModal">
+            <div id="feedback">
+                <button id="feedbackButton">Feedback</button>
+                <dialog id="feedbackModal">
                     <article>
                         <header>
-                            <button id="contactCloseButton" aria-label="Close" rel="prev"></button>
+                            <button id="feedbackCloseButton" aria-label="Close" rel="prev"></button>
                         </header>
-                        <p>Thank you for your interest!
-                        </p>
+                        <p><strong>Send a message to Ryan</strong></p>
 
-                        <p>If you encountered bugs or have any feedback, feel free to email me at: <a
-                                href="mailto:hieuimba@gmail.com">hieuimba@gmail.com</a>
-                        </p>
+                        <form id="feedbackForm">
+                            <div>
+                                <input type="text" id="userName" name="userName" placeholder="Name (optional)">
+                            </div>
 
+                            <div>
+                                <input type="email" id="userEmail" name="userEmail" placeholder="Email (optional)">
+                            </div>
 
-                        <p>Check out my other projects here: <a href="https://github.com/hieuimba"
-                                target="_blank">https://github.com/hieuimba</a></p>
+                            <div>
+                                <textarea id="userFeedback" name="userFeedback" placeholder="Share your thoughts, report a bug, suggest a feature or just say hi!" rows="5" required></textarea>
+                            </div>
 
+                            <button type="submit" id="submitFeedback">Send</button>
+                        </form>
 
+                        <div id="feedbackMessage" style="display: none; margin-top: 1rem;"></div>
                     </article>
                 </dialog>
             </div>
