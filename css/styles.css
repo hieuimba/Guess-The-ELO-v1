@@ -2,6 +2,7 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  letter-spacing: 0.01em; /* Apply subtle letter-spacing globally */
 }
 
 :root {
