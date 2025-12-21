@@ -10,7 +10,7 @@ const isOpenClass = "modal-is-open";
 const openingClass = "modal-is-opening";
 const closingClass = "modal-is-closing";
 const scrollbarWidthCssVar = "--pico-scrollbar-width";
-const animationDuration = 0; // ms
+const animationDuration = 500; // ms
 let visibleModal = null;
 
 const aboutButton = document.getElementById("aboutButton");
