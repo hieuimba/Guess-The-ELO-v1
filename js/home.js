@@ -1,4 +1,5 @@
 import { processSelections } from "./other/utils.js";
+import { loadDailyState, hasPlayedToday, getTimeUntilMidnightCT, dailyState } from "./data/daily.js";
 
 const gameModesButtons = document.querySelectorAll(".gameModesButtons");
 const classicButton = document.getElementById("classicButton");
@@ -59,16 +60,27 @@ export let gameConfigs = processSelections(gameModeOptions.classic);
 let intervalId;
 
 // Function to update UI based on current game mode
-function updateUIForMode() {
+export function updateUIForMode() {
   const currentOptions = gameModeOptions[currentGameMode];
 
   if (currentGameMode === "daily") {
-    // Daily Challenge - Coming Soon
-    optionTitle.textContent = "Coming Soon!";
+    // Daily Challenge
+    const played = hasPlayedToday();
+
+    if (played) {
+      optionTitle.textContent = `Completed ✓ | Next in ${getTimeUntilMidnightCT()}`;
+      startGameButton.textContent = "Already Played";
+      startGameButton.disabled = true;
+    } else {
+      optionTitle.textContent = dailyState.currentStreak > 0
+        ? `Daily Challenge | 🔥 ${dailyState.currentStreak}`
+        : "Daily Challenge";
+      startGameButton.textContent = "Play Daily";
+      startGameButton.disabled = false;
+    }
+
     optionsContainer.style.display = "none";
     optionPlaceholder.style.display = "block";
-    startGameButton.textContent = "Play Daily";
-    startGameButton.disabled = true;
   } else {
     // Classic or Endless mode
     optionTitle.textContent = "Options";
@@ -129,6 +141,9 @@ gameModesButtons.forEach((button) => {
     updateUIForMode();
   });
 });
+
+// Load daily state on page load
+loadDailyState();
 
 // Check URL parameters on page load
 const urlParams = new URLSearchParams(window.location.search);

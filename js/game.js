@@ -1,5 +1,6 @@
-import { gameConfigs, currentGameMode } from "./home.js";
-import { fetchGames } from "./data/fetchGames.js";
+import { gameConfigs, currentGameMode, updateUIForMode } from "./home.js";
+import { fetchGames, fetchDailyGame } from "./data/fetchGames.js";
+import { updateDailyResult, dailyState } from "./data/daily.js";
 import {
   initializeChessBoard,
   removeChessBoard,
@@ -112,8 +113,13 @@ startGameButton?.addEventListener("click", async () => {
     gameTimeLimit = gameConfigs.timeLimit;
     gameEvaluation = gameConfigs.evaluation;
     gameArray = await fetchGames(gameTimeControls, 20); // Start with 20 games
+  } else if (currentGameMode === "daily") {
+    maxRounds = 1;
+    gameArray = [await fetchDailyGame()];
+    // Fixed settings for daily challenge
+    gameTimeLimit = "90s";
+    gameEvaluation = "Yes";
   }
-  // Daily challenge mode will be added here later
 
   generateHeartIcons();
   newGame(gameArray[currentRound]);
@@ -157,11 +163,22 @@ mainMenuButton.addEventListener("click", () => {
   footer.style.display = "flex";
   document.title = "Play Guess The ELO";
   adjustScreen();
+  // Update UI to reflect daily challenge completion status
+  updateUIForMode();
 });
 
 function updateResultScreen() {
   const resultHeader = document.getElementById("resultHeader");
-  if (currentGameMode === "endless") {
+  const resultSummary = document.getElementById("resultSummary");
+
+  if (currentGameMode === "daily") {
+    // Daily challenge result
+    resultHeader.textContent = "Daily Challenge Complete!";
+    resultSummary.textContent = dailyState.currentStreak > 0
+      ? `🔥 ${dailyState.currentStreak} day streak!`
+      : "Start your streak tomorrow!";
+    // Extension point: Add share button here
+  } else if (currentGameMode === "endless") {
     if (currentRound > 10) {
       resultHeader.textContent = getRandomElement(resultHeaderAllCorrect);
     } else if (currentRound > 3) {
@@ -169,6 +186,7 @@ function updateResultScreen() {
     } else {
       resultHeader.textContent = getRandomElement(resultHeaderNegative);
     }
+    resultSummary.textContent = `You made it to round ${currentRound}!`;
   } else {
     // Classic mode (always 5 rounds)
     if (correctCount <= 2) {
@@ -178,12 +196,6 @@ function updateResultScreen() {
     } else {
       resultHeader.textContent = getRandomElement(resultHeaderAllCorrect);
     }
-  }
-
-  const resultSummary = document.getElementById("resultSummary");
-  if (currentGameMode === "endless") {
-    resultSummary.textContent = `You made it to round ${currentRound}!`;
-  } else {
     resultSummary.textContent = `You got ${correctCount} out of ${maxRounds} games right`;
   }
 
@@ -345,12 +357,24 @@ export function endRound(answer, button) {
       updateAnswerBannerElement(correctScore + timeBonus, streakBonus);
       updateScoreElement(correctScore + timeBonus, streakBonus);
       addHeart();
+
+      // Update daily challenge result if playing daily mode
+      if (currentGameMode === "daily") {
+        updateDailyResult(true);
+        // Extension point: submitAnonymousStats(correctElo, button.textContent);
+      }
     } else if (answer === "Incorrect") {
       playSound("incorrectSound");
       streakCount = 0;
 
       updateAnswerBannerElement(0, 0);
       removeHeart();
+
+      // Update daily challenge result if playing daily mode (not won)
+      if (currentGameMode === "daily") {
+        updateDailyResult(false);
+        // Extension point: submitAnonymousStats(correctElo, button.textContent);
+      }
     }
     eloButtons.forEach((btn) => {
       if (btn !== button && btn.textContent !== correctElo) {
