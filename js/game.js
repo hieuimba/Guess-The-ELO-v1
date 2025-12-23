@@ -1,6 +1,6 @@
-import { gameConfigs, currentGameMode, updateUIForMode } from "./home.js";
+import { gameConfigs, currentGameMode, updateUIForMode, updateStreakBadge } from "./home.js";
 import { fetchGames, fetchDailyGame } from "./data/fetchGames.js";
-import { updateDailyResult, dailyState } from "./data/daily.js";
+import { updateDailyResult, dailyState, loadDailyState } from "./data/daily.js";
 import {
   initializeChessBoard,
   removeChessBoard,
@@ -149,6 +149,12 @@ viewResultButton.addEventListener("click", () => {
   playSound("gameEndSound");
   removeChessBoard();
   clearAnswerBanner();
+
+  // Update daily challenge completion when game ends (regardless of correct/incorrect)
+  if (currentGameMode === "daily") {
+    updateDailyResult();
+  }
+
   updateResultScreen();
   viewResultButton.style.display = "none";
   gameScreen.style.display = "none";
@@ -163,8 +169,12 @@ mainMenuButton.addEventListener("click", () => {
   footer.style.display = "flex";
   document.title = "Play Guess The ELO";
   adjustScreen();
+  // Reload daily state to get updated streak
+  loadDailyState();
   // Update UI to reflect daily challenge completion status
   updateUIForMode();
+  // Update streak badge with new streak value
+  updateStreakBadge();
 });
 
 function updateResultScreen() {
@@ -358,11 +368,7 @@ export function endRound(answer, button) {
       updateScoreElement(correctScore + timeBonus, streakBonus);
       addHeart();
 
-      // Update daily challenge result if playing daily mode
-      if (currentGameMode === "daily") {
-        updateDailyResult(true);
-        // Extension point: submitAnonymousStats(correctElo, button.textContent);
-      }
+      // Extension point: submitAnonymousStats(correctElo, button.textContent) for daily mode
     } else if (answer === "Incorrect") {
       playSound("incorrectSound");
       streakCount = 0;
@@ -370,11 +376,7 @@ export function endRound(answer, button) {
       updateAnswerBannerElement(0, 0);
       removeHeart();
 
-      // Update daily challenge result if playing daily mode (not won)
-      if (currentGameMode === "daily") {
-        updateDailyResult(false);
-        // Extension point: submitAnonymousStats(correctElo, button.textContent);
-      }
+      // Extension point: submitAnonymousStats(correctElo, button.textContent) for daily mode
     }
     eloButtons.forEach((btn) => {
       if (btn !== button && btn.textContent !== correctElo) {

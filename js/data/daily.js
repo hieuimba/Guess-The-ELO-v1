@@ -18,29 +18,42 @@ export function saveDailyState() {
 
 export function getTodayDateCT() {
   // Get current date in Chicago time
-  const ct = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
-  return new Date(ct).toISOString().split('T')[0];
+  const now = new Date();
+  const ctDateStr = now.toLocaleDateString("en-CA", {
+    timeZone: "America/Chicago",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  return ctDateStr; // Returns YYYY-MM-DD format directly
 }
 
 export function hasPlayedToday() {
   return dailyState.lastPlayedDate === getTodayDateCT();
 }
 
-export function updateDailyResult(won) {
+export function updateDailyResult() {
   const today = getTodayDateCT();
 
   // Calculate yesterday in CT
-  const ctNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
-  const yesterday = new Date(ctNow);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
+  const now = new Date();
+  now.setDate(now.getDate() - 1);
+  const yesterdayStr = now.toLocaleDateString("en-CA", {
+    timeZone: "America/Chicago",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
 
-  // Update streak
-  if (won && dailyState.lastPlayedDate === yesterdayStr) {
+  // Update streak - playing counts regardless of winning
+  if (dailyState.lastPlayedDate === yesterdayStr) {
+    // Played yesterday - continue streak
     dailyState.currentStreak++;
-  } else if (won) {
+  } else if (dailyState.lastPlayedDate !== today) {
+    // First time playing today or missed days - start/reset streak to 1
     dailyState.currentStreak = 1;
   }
+  // If already played today (lastPlayedDate === today), don't update streak again
 
   dailyState.bestStreak = Math.max(dailyState.bestStreak, dailyState.currentStreak);
   dailyState.lastPlayedDate = today;

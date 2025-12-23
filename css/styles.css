@@ -13,6 +13,7 @@
   --white: #f2f2f2;
   --black: #0d0d0d;
   --font: "Bangers";
+  --text-shadow-md: 0px 1px 1px rgb(0 0 0 / 0.1), 0px 1px 2px rgb(0 0 0 / 0.1), 0px 2px 4px rgb(0 0 0 / 0.1);
 }
 
 html {
@@ -187,7 +188,7 @@ body {
   border-radius: 5px;
   border: 0;
   cursor: pointer;
-  color: var(--black); 
+  color: var(--black);
   font-size: clamp(1.125rem, 0.272rem + 3.956vw, 2.25rem); /* min 345 max 800 */
   display: grid;
   grid-template-rows: 1fr 1fr; /* Two equal rows */
@@ -196,6 +197,7 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
   gap: clamp(0rem, -0.758rem + 3.516vw, 1rem); /* min 345 max 800 */
   padding: clamp(0.5rem, -2.154rem + 12.308vw, 4rem) 0.5rem; /* min 345 max 800 */
+  position: relative; /* For absolute positioning of streak badge */
 }
 
 .gameModesButtons:hover {
@@ -249,6 +251,26 @@ body {
   stroke: var(--primary-color);
   fill: var(--primary-color);
   stroke-width: 1.5;
+}
+
+/* Streak Badge */
+.streak-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: hsla(16, 100%, 60%, 0.5);
+  border: 1px solid #ff6b35;
+  color: var(--white);
+  padding: 0.2rem 0.7rem 0.2rem 0.2rem;
+  border-radius: 12px;
+  font-size: clamp(0.75rem, 0.5rem + 1vw, 1rem);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: var(--text-shadow-md);
+  z-index: 10;
 }
 
 #endlessModeButton svg {
@@ -346,15 +368,38 @@ body {
   grid-column: 4;
 }
 
-.optionButtons div {
-  font-size: clamp(1rem, 0.662rem + 1.569vw, 1.25rem); /* min 345 max 600 */
+/* Daily Challenge Stats Styles */
+
+#dailyStreakInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: center;
+  font-size: clamp(1rem, 0.662rem + 1.569vw, 1.25rem);
 }
 
-.optionPlaceholder {
-  padding-top: calc(
-    2 * clamp(1.2rem, 0.659rem + 2.51vw, 1.6rem) + 3 *
-      clamp(1rem, 0.662rem + 1.569vw, 1.25rem)
-  );
+#dailyStreakInfo div {
+  color: var(--muted-color);
+  line-height: 1.5;
+}
+
+#currentStreakLine {
+  font-size: clamp(1.1rem, 0.8rem + 1.5vw, 1.4rem);
+  color: var(--color);
+}
+
+#bestStreakLine {
+  font-size: clamp(0.9rem, 0.6rem + 1.2vw, 1.1rem);
+}
+
+#nextChallengeLine {
+  font-size: clamp(0.9rem, 0.6rem + 1.2vw, 1.1rem);
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.optionButtons div {
+  font-size: clamp(1rem, 0.662rem + 1.569vw, 1.25rem); /* min 345 max 600 */
 }
 
 #evalSelection.hardStyle::before {

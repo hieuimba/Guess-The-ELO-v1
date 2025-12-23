@@ -58,6 +58,7 @@
 
                 <button class="gameModesButtons" id="dailyChallengeButton">
                     <div>Daily Challenge</div>
+                    <span class="streak-badge" id="streakBadge" style="display: none;">🔥 <span id="streakNumber">0</span></span>
 
 
                     <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" id="knightIcon" viewBox="0 0 45 45"
@@ -140,8 +141,14 @@
                             </button>
                         </div>
                     </div>
-                    <!-- Placeholder for Daily Challenge coming soon message -->
-                    <div id="optionPlaceholder" class="optionPlaceholder" style="display: none"></div>
+                    <!-- Daily Challenge Stats - dedicated div for daily challenge info -->
+                    <div id="dailyChallengeStats" style="display: none">
+                        <div id="dailyStreakInfo">
+                            <div id="currentStreakLine"></div>
+                            <div id="bestStreakLine"></div>
+                            <div id="nextChallengeLine"></div>
+                        </div>
+                    </div>
                     <!-- Single unified start button -->
                     <button id="startGameButton" class="startButton">Play Classic</button>
                 </div>

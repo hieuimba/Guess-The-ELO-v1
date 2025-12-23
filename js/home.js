@@ -9,7 +9,7 @@ const endlessModeButton = document.getElementById("endlessModeButton");
 // Unified elements
 const optionTitle = document.getElementById("optionTitle");
 const optionsContainer = document.getElementById("optionsContainer");
-const optionPlaceholder = document.getElementById("optionPlaceholder");
+const dailyChallengeStats = document.getElementById("dailyChallengeStats");
 const startGameButton = document.getElementById("startGameButton");
 
 // Option controls (single set for all modes)
@@ -66,26 +66,37 @@ export function updateUIForMode() {
   if (currentGameMode === "daily") {
     // Daily Challenge
     const played = hasPlayedToday();
+    const timeUntilNext = getTimeUntilMidnightCT();
+
+    // Update option title
+    optionTitle.textContent = "Daily Challenge";
+
+    // Update placeholder content with streak info
+    const currentStreakLine = document.getElementById("currentStreakLine");
+    const bestStreakLine = document.getElementById("bestStreakLine");
+    const nextChallengeLine = document.getElementById("nextChallengeLine");
 
     if (played) {
-      optionTitle.textContent = `Completed ✓ | Next in ${getTimeUntilMidnightCT()}`;
+      currentStreakLine.textContent = "Completed ✓";
+      bestStreakLine.textContent = `Current Streak: 🔥 ${dailyState.currentStreak}`;
+      nextChallengeLine.textContent = `Next challenge in ${timeUntilNext}`;
       startGameButton.textContent = "Already Played";
       startGameButton.disabled = true;
     } else {
-      optionTitle.textContent = dailyState.currentStreak > 0
-        ? `Daily Challenge | 🔥 ${dailyState.currentStreak}`
-        : "Daily Challenge";
+      currentStreakLine.textContent = `Current Streak: 🔥 ${dailyState.currentStreak}`;
+      bestStreakLine.textContent = `Best Streak: 🔥 ${dailyState.bestStreak}`;
+      nextChallengeLine.textContent = `Next challenge in ${timeUntilNext}`;
       startGameButton.textContent = "Play Daily";
       startGameButton.disabled = false;
     }
 
     optionsContainer.style.display = "none";
-    optionPlaceholder.style.display = "block";
+    dailyChallengeStats.style.display = "block";
   } else {
     // Classic or Endless mode
     optionTitle.textContent = "Options";
     optionsContainer.style.display = "grid";
-    optionPlaceholder.style.display = "none";
+    dailyChallengeStats.style.display = "none";
     startGameButton.disabled = false;
 
     // Update button text
@@ -139,11 +150,28 @@ gameModesButtons.forEach((button) => {
 
     // Update UI for the selected mode
     updateUIForMode();
+
+    // Update streak badge when switching modes
+    updateStreakBadge();
   });
 });
 
+// Function to update streak badge visibility
+export function updateStreakBadge() {
+  const streakBadge = document.getElementById("streakBadge");
+  const streakNumber = document.getElementById("streakNumber");
+
+  if (dailyState.currentStreak > 0) {
+    streakNumber.textContent = dailyState.currentStreak;
+    streakBadge.style.display = "flex";
+  } else {
+    streakBadge.style.display = "none";
+  }
+}
+
 // Load daily state on page load
 loadDailyState();
+updateStreakBadge();
 
 // Check URL parameters on page load
 const urlParams = new URLSearchParams(window.location.search);
