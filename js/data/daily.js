@@ -2,7 +2,8 @@
 export const dailyState = {
   lastPlayedDate: null,    // "2024-12-21" format
   currentStreak: 0,
-  bestStreak: 0
+  bestStreak: 0,
+  lastGameData: null        // Stores complete game state for review
 };
 
 export function loadDailyState() {
@@ -25,7 +26,7 @@ export function hasPlayedToday() {
   return dailyState.lastPlayedDate === getTodayDateCT();
 }
 
-export function updateDailyResult() {
+export function updateDailyResult(gameData = null) {
   const today = getTodayDateCT();
 
   // Skip if already played today
@@ -43,6 +44,12 @@ export function updateDailyResult() {
 
   dailyState.bestStreak = Math.max(dailyState.bestStreak, dailyState.currentStreak);
   dailyState.lastPlayedDate = today;
+
+  // Save game data for review if provided
+  if (gameData) {
+    dailyState.lastGameData = gameData;
+  }
+
   saveDailyState();
 }
 

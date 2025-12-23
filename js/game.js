@@ -1,11 +1,11 @@
 import { gameConfigs, currentGameMode, updateUIForMode, updateStreakBadge } from "./home.js";
 import { fetchGames, fetchDailyGame } from "./data/fetchGames.js";
-import { updateDailyResult, dailyState, loadDailyState } from "./data/daily.js";
+import { updateDailyResult, dailyState, loadDailyState, hasPlayedToday } from "./data/daily.js";
 import {
   initializeChessBoard,
   removeChessBoard,
 } from "./elements/chessBoard.js";
-import { clearCountdown, startCountdown } from "./elements/clock.js";
+import { clearCountdown, startCountdown, displayStaticClock } from "./elements/clock.js";
 import {
   getRandomEloNumbers,
   shuffleArray,
@@ -64,6 +64,8 @@ let partialLivesCount = 0;
 let currentRound = 0;
 
 let roundEnded = false;
+let isReviewMode = false;
+let dailyGameState = null; // Stores state for daily game
 
 function resetVariables() {
   gameArray = [];
@@ -85,6 +87,8 @@ function resetVariables() {
   document.getElementById("heartsContainer").classList.remove("shrink");
 
   roundEnded = false;
+  isReviewMode = false;
+  dailyGameState = null;
 }
 
 function playSound(elementId) {
@@ -99,6 +103,12 @@ startGameButton?.addEventListener("click", async () => {
   playSound("gameStartSound");
   disableStartGameButton();
   resetVariables();
+
+  // Check if this is a review session for daily challenge
+  if (currentGameMode === "daily" && hasPlayedToday() && dailyState.lastGameData) {
+    isReviewMode = true;
+    dailyGameState = dailyState.lastGameData;
+  }
 
   // Set game parameters based on current mode
   if (currentGameMode === "classic") {
@@ -115,7 +125,13 @@ startGameButton?.addEventListener("click", async () => {
     gameArray = await fetchGames(gameTimeControls, 20); // Start with 20 games
   } else if (currentGameMode === "daily") {
     maxRounds = 1;
-    gameArray = [await fetchDailyGame()];
+    if (isReviewMode) {
+      // Load saved game data for review
+      gameArray = [dailyGameState.gameDict];
+      gameScore = dailyGameState.finalScore || 0;
+    } else {
+      gameArray = [await fetchDailyGame()];
+    }
     // Fixed settings for daily challenge
     gameTimeLimit = "90s";
     gameEvaluation = "Yes";
@@ -151,8 +167,12 @@ viewResultButton.addEventListener("click", () => {
   clearAnswerBanner();
 
   // Update daily challenge completion when game ends (regardless of correct/incorrect)
-  if (currentGameMode === "daily") {
-    updateDailyResult();
+  if (currentGameMode === "daily" && !isReviewMode) {
+    // Save the final score before updating daily result
+    if (dailyGameState) {
+      dailyGameState.finalScore = gameScore;
+    }
+    updateDailyResult(dailyGameState);
   }
 
   updateResultScreen();
@@ -274,12 +294,26 @@ function updateResultScreen() {
 }
 
 function setUpEloButtons(correctElo, eloMinRange, eloMaxRange) {
-  // Select a random button for the correct answer
-  const choices = shuffleArray(
-    getRandomEloNumbers(parseInt(correctElo), eloMinRange, eloMaxRange)
-  );
+  let choices;
 
-  // Enable buttons
+  if (isReviewMode && dailyGameState) {
+    // Use saved choices for review mode
+    choices = dailyGameState.eloChoices;
+  } else {
+    // Generate new choices for normal play
+    choices = shuffleArray(
+      getRandomEloNumbers(parseInt(correctElo), eloMinRange, eloMaxRange)
+    );
+
+    // Save choices for daily challenge (first play only)
+    if (currentGameMode === "daily" && !isReviewMode) {
+      if (!dailyGameState) dailyGameState = {};
+      dailyGameState.eloChoices = choices;
+      dailyGameState.correctElo = correctElo;
+    }
+  }
+
+  // Enable buttons (but they'll be disabled for review mode later)
   eloButtons.forEach((btn) => {
     btn.disabled = false;
     btn.removeAttribute("tabindex");
@@ -292,12 +326,25 @@ function setUpEloButtons(correctElo, eloMinRange, eloMaxRange) {
 
     button.textContent = choices[index];
 
-    // Assign ids to handler functions
-    eloButtonHandlers[button.id] = () => {
-      eloButtonClickHandler(button, correctElo);
-    };
-    // Add click event to buttons
-    button.addEventListener("click", eloButtonHandlers[button.id]);
+    // In review mode, show the previous selection and correct answer
+    if (isReviewMode && dailyGameState) {
+      if (button.textContent === dailyGameState.userAnswer) {
+        button.classList.add(dailyGameState.wasCorrect ? "correctGuess" : "incorrectGuess");
+      }
+      if (button.textContent === dailyGameState.correctElo && !dailyGameState.wasCorrect) {
+        button.classList.add("correctGuess");
+      }
+      // Disable clicks in review mode
+      button.disabled = true;
+      button.setAttribute("tabindex", "-1");
+    } else {
+      // Assign ids to handler functions
+      eloButtonHandlers[button.id] = () => {
+        eloButtonClickHandler(button, correctElo);
+      };
+      // Add click event to buttons
+      button.addEventListener("click", eloButtonHandlers[button.id]);
+    }
   });
 }
 
@@ -307,6 +354,26 @@ function eloButtonClickHandler(button, correctElo) {
     countdownSound.pause();
     countdownSound.currentTime = 0; // Reset the audio to the beginning
   }
+
+  // Save user's answer and timing for daily challenge
+  if (currentGameMode === "daily" && !isReviewMode) {
+    if (!dailyGameState) dailyGameState = {};
+    dailyGameState.userAnswer = button.textContent;
+    dailyGameState.wasCorrect = button.textContent === correctElo;
+
+    // Save remaining time percentage and calculate seconds used
+    if (gameTimeLimit !== "None" && remainingTimePercentage !== undefined) {
+      dailyGameState.remainingTimePercentage = remainingTimePercentage;
+      const totalSeconds = gameTimeLimit === "90s" ? 90 : 45;
+      dailyGameState.secondsRemaining = Math.floor(totalSeconds * remainingTimePercentage);
+      dailyGameState.secondsUsed = totalSeconds - dailyGameState.secondsRemaining;
+    } else {
+      dailyGameState.remainingTimePercentage = 1;
+      dailyGameState.secondsRemaining = gameTimeLimit === "90s" ? 90 : 45;
+      dailyGameState.secondsUsed = 0;
+    }
+  }
+
   if (button.textContent === correctElo) {
     button.classList.add("correctGuess");
     endRound("Correct", button);
@@ -343,6 +410,17 @@ export function endRound(answer, button) {
 
   // Disable buttons
   if (answer === "Time") {
+    // Save timing data when time runs out for daily challenge
+    if (currentGameMode === "daily" && !isReviewMode) {
+      if (!dailyGameState) dailyGameState = {};
+      dailyGameState.wasCorrect = false;
+      dailyGameState.timedOut = true;
+      dailyGameState.remainingTimePercentage = 0;
+      dailyGameState.secondsRemaining = 0;
+      const totalSeconds = gameTimeLimit === "90s" ? 90 : 45;
+      dailyGameState.secondsUsed = totalSeconds;
+    }
+
     streakCount = 0;
     updateAnswerBannerElement(0, 0, true);
     removeHeart();
@@ -541,26 +619,50 @@ export function updateAnswerBannerElement(
   timeout = false
 ) {
   clearAnswerBanner();
-  if (timeout === true) {
-    answerBannerContent.textContent = getRandomElement(timeOutResponse);
-    answerBanner.classList.add("active", "incorrect");
-  } else if (addedScore === 0 && streakBonus === 0) {
-    answerBannerContent.textContent = getRandomElement(incorrectGuessResponse);
-    answerBanner.classList.add("active", "incorrect");
+
+  // In review mode, show saved banner message
+  if (isReviewMode && dailyGameState && dailyGameState.answerBannerHTML) {
+    answerBannerContent.innerHTML = dailyGameState.answerBannerHTML;
+    answerBanner.classList.add("active", dailyGameState.wasCorrect ? "correct" : "incorrect");
   } else {
-    let correctResponse;
-    if (streakBonus > 0) {
-      correctResponse = getRandomElement([
-        ...correctGuessResponseStreak,
-        ...correctGuessResponse,
-      ]);
-      answerBannerContent.innerHTML = `${correctResponse} &nbsp; +${addedScore} points<div id = "streakBonus:">Streak Bonus &nbsp; +${streakBonus} points`;
+    // Normal game mode
+    let bannerHTML, bannerClass;
+
+    if (timeout === true) {
+      bannerHTML = getRandomElement(timeOutResponse);
+      bannerClass = "incorrect";
+      answerBannerContent.textContent = bannerHTML;
+    } else if (addedScore === 0 && streakBonus === 0) {
+      bannerHTML = getRandomElement(incorrectGuessResponse);
+      bannerClass = "incorrect";
+      answerBannerContent.textContent = bannerHTML;
     } else {
-      correctResponse = getRandomElement(correctGuessResponse);
-      answerBannerContent.innerHTML = `${correctResponse} &nbsp; +${addedScore} points`;
+      let correctResponse;
+      if (streakBonus > 0) {
+        correctResponse = getRandomElement([
+          ...correctGuessResponseStreak,
+          ...correctGuessResponse,
+        ]);
+        bannerHTML = `${correctResponse} &nbsp; +${addedScore} points<div id = "streakBonus:">Streak Bonus &nbsp; +${streakBonus} points`;
+      } else {
+        correctResponse = getRandomElement(correctGuessResponse);
+        bannerHTML = `${correctResponse} &nbsp; +${addedScore} points`;
+      }
+      bannerClass = "correct";
+      answerBannerContent.innerHTML = bannerHTML;
     }
-    answerBanner.classList.add("active", "correct");
+
+    answerBanner.classList.add("active", bannerClass);
+
+    // Save banner message for daily challenge
+    if (currentGameMode === "daily" && !isReviewMode) {
+      if (!dailyGameState) dailyGameState = {};
+      dailyGameState.answerBannerHTML = bannerHTML;
+      dailyGameState.baseScore = addedScore;
+      dailyGameState.streakBonus = streakBonus;
+    }
   }
+
   // Clear the previous timeout, if any
   if (answerBannerTimeout) {
     clearTimeout(answerBannerTimeout);
@@ -594,7 +696,22 @@ async function newGame(gameDict) {
     evaluation = false;
   }
   const moves = gameDict.Moves;
-  const orientation = getRandomElement(["white", "black"]);
+
+  let orientation;
+  if (isReviewMode && dailyGameState && dailyGameState.orientation) {
+    // Use saved orientation for review
+    orientation = dailyGameState.orientation;
+  } else {
+    // Generate new orientation for normal play
+    orientation = getRandomElement(["white", "black"]);
+    // Save orientation for daily challenge
+    if (currentGameMode === "daily" && !isReviewMode) {
+      if (!dailyGameState) dailyGameState = {};
+      dailyGameState.orientation = orientation;
+      dailyGameState.gameDict = gameDict; // Save the entire game dict
+    }
+  }
+
   const site = gameDict.Site;
   correctElo =
     orientation === "white"
@@ -608,10 +725,29 @@ async function newGame(gameDict) {
 
   setUpEloButtons(correctElo);
   adjustScreen();
-  clearCountdown();
-  startCountdown(time);
+
+  // In review mode, don't start countdown and show answer immediately
+  if (isReviewMode) {
+    // Display static clock with saved time data
+    if (dailyGameState && dailyGameState.secondsRemaining !== undefined) {
+      const totalSeconds = gameTimeLimit === "90s" ? 90 : (gameTimeLimit === "45s" ? 45 : 0);
+      displayStaticClock(dailyGameState.secondsRemaining, totalSeconds);
+    } else {
+      clearCountdown();
+    }
+    // Show the saved answer banner
+    updateAnswerBannerElement(
+      dailyGameState.baseScore || 0,
+      dailyGameState.streakBonus || 0
+    );
+    // Show view result button immediately
+    viewResultButton.style.display = "block";
+  } else {
+    clearCountdown();
+    startCountdown(time);
+  }
   // console.log(correctElo);
-  roundEnded = false;
+  roundEnded = isReviewMode; // End round immediately in review mode
 }
 
 function enableStartGameButton() {

@@ -80,8 +80,8 @@ export function updateUIForMode() {
       currentStreakLine.textContent = "Completed ✓";
       bestStreakLine.textContent = `Current Streak: 🔥 ${dailyState.currentStreak}`;
       nextChallengeLine.textContent = `Next challenge in ${timeUntilNext}`;
-      startGameButton.textContent = "Already Played";
-      startGameButton.disabled = true;
+      startGameButton.textContent = "Review Daily";
+      startGameButton.disabled = false; // Enable button for review
     } else {
       currentStreakLine.textContent = `Current Streak: 🔥 ${dailyState.currentStreak}`;
       bestStreakLine.textContent = `Best Streak: 🔥 ${dailyState.bestStreak}`;

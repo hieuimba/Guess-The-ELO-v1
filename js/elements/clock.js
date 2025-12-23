@@ -69,3 +69,44 @@ function updateCountdownColor(backgroundColor, fontColor) {
 export function clearCountdown() {
   clearInterval(countdown); // Clear any existing countdown interval
 }
+
+export function displayStaticClock(secondsRemaining, totalSeconds) {
+  // Display static clock for review mode
+  clearCountdown(); // Make sure no countdown is running
+
+  if (!totalSeconds || totalSeconds === 0) {
+    // No time limit mode
+    countdownBar.style.display = "none";
+    clock.innerHTML = `<span>&#8734;</span>`;
+    clock.style.backgroundColor = "gray";
+    clock.style.paddingBottom = "0.5rem";
+    return;
+  }
+
+  // Calculate remaining percentage
+  const remainingPercentage = secondsRemaining / totalSeconds;
+
+  // Set up static display
+  clock.style.paddingBottom = "clamp(0rem, -0.203rem + 0.941vw, 0.15rem)";
+  countdownBar.style.display = "flex";
+  clock.textContent = secondsRemaining;
+  countdownBar.value = secondsRemaining;
+  countdownBar.max = totalSeconds;
+
+  // Set color based on remaining time percentage
+  let backgroundColor, fontColor;
+  if (remainingPercentage > 0.5) {
+    backgroundColor = green;
+    fontColor = "#f2f2f2";
+  } else if (remainingPercentage > 0.25) {
+    backgroundColor = yellow;
+    fontColor = "#1F1F1F";
+  } else {
+    backgroundColor = red;
+    fontColor = "#1F1F1F";
+  }
+
+  countdownBar.style.setProperty("--pico-progress-color", backgroundColor);
+  clock.style.backgroundColor = backgroundColor;
+  clock.style.color = fontColor;
+}
