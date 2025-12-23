@@ -70,22 +70,23 @@ export function updateUIForMode() {
     const challengeNum = getChallengeNumber();
 
     // Update option title with challenge number
-    optionTitle.innerHTML = `Challenge #${challengeNum}${played ? ' <span class="completion-badge">✓</span>' : ''}`;
+    optionTitle.innerHTML = `Challenge #${challengeNum}${played ? ' <span class="completion-badge"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check"><path d="M20 6 9 17l-5-5"/></svg></span>' : ''}`;
 
     // Update placeholder content with streak info
+    const todayScoreLine = document.getElementById("todayScoreLine");
     const currentStreakLine = document.getElementById("currentStreakLine");
-    const bestStreakLine = document.getElementById("bestStreakLine");
     const nextChallengeLine = document.getElementById("nextChallengeLine");
 
     if (played) {
-      currentStreakLine.textContent = `Current Streak: 🔥 ${dailyState.currentStreak}`;
-      bestStreakLine.textContent = `Best Streak: 🔥 ${dailyState.bestStreak}`;
+      const todayScore = dailyState.lastGameData?.finalScore || 0;
+      todayScoreLine.innerHTML = `Today's Score: ${todayScore.toLocaleString()}`;
+      currentStreakLine.innerHTML = `Current Streak: \u00A0<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg> ${dailyState.currentStreak}`;
       nextChallengeLine.textContent = `Next challenge in ${timeUntilNext}`;
-      startGameButton.textContent = "Review Daily";
+      startGameButton.textContent = "Review Game";
       startGameButton.disabled = false; // Enable button for review
     } else {
-      currentStreakLine.textContent = `Current Streak: 🔥 ${dailyState.currentStreak}`;
-      bestStreakLine.textContent = `Best Streak: 🔥 ${dailyState.bestStreak}`;
+      todayScoreLine.innerHTML = `Today's Score: —`;
+      currentStreakLine.innerHTML = `Current Streak: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg> ${dailyState.currentStreak}`;
       nextChallengeLine.textContent = `Next challenge in ${timeUntilNext}`;
       startGameButton.textContent = "Play Daily";
       startGameButton.disabled = false;
@@ -160,10 +161,8 @@ gameModesButtons.forEach((button) => {
 // Function to update streak badge visibility
 export function updateStreakBadge() {
   const streakBadge = document.getElementById("streakBadge");
-  const streakNumber = document.getElementById("streakNumber");
 
   if (dailyState.currentStreak > 0) {
-    streakNumber.textContent = dailyState.currentStreak;
     streakBadge.style.display = "flex";
   } else {
     streakBadge.style.display = "none";

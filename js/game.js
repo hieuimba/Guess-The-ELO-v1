@@ -1,6 +1,6 @@
 import { gameConfigs, currentGameMode, updateUIForMode, updateStreakBadge } from "./home.js";
 import { fetchGames, fetchDailyGame } from "./data/fetchGames.js";
-import { updateDailyResult, dailyState, loadDailyState, hasPlayedToday } from "./data/daily.js";
+import { updateDailyResult, dailyState, loadDailyState, hasPlayedToday, getChallengeNumber } from "./data/daily.js";
 import {
   initializeChessBoard,
   removeChessBoard,
@@ -32,6 +32,7 @@ const startGameButton = document.getElementById("startGameButton");
 const nextGameButton = document.getElementById("nextGameButton");
 const viewResultButton = document.getElementById("viewResultButton");
 const mainMenuButton = document.getElementById("mainMenuButton");
+const shareButton = document.getElementById("shareButton");
 const homeScreen = document.getElementById("homeScreen");
 const gameScreen = document.getElementById("gameScreen");
 const resultScreen = document.getElementById("resultScreen");
@@ -197,6 +198,10 @@ mainMenuButton.addEventListener("click", () => {
   updateStreakBadge();
 });
 
+shareButton?.addEventListener("click", async () => {
+  await shareResult();
+});
+
 function updateResultScreen() {
   const resultHeader = document.getElementById("resultHeader");
   const resultSummary = document.getElementById("resultSummary");
@@ -204,11 +209,18 @@ function updateResultScreen() {
   if (currentGameMode === "daily") {
     // Daily challenge result
     resultHeader.textContent = "Daily Challenge Complete!";
-    resultSummary.textContent = dailyState.currentStreak > 0
-      ? `🔥 ${dailyState.currentStreak} day streak!`
+    resultSummary.innerHTML = dailyState.currentStreak > 0
+      ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame" style="display: inline; vertical-align: middle;"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg> ${dailyState.currentStreak} day streak!`
       : "Start your streak tomorrow!";
-    // Extension point: Add share button here
+    // Show share button for daily challenge
+    if (shareButton) {
+      shareButton.style.display = "flex";
+    }
   } else if (currentGameMode === "endless") {
+    // Hide share button for other modes
+    if (shareButton) {
+      shareButton.style.display = "none";
+    }
     if (currentRound > 10) {
       resultHeader.textContent = getRandomElement(resultHeaderAllCorrect);
     } else if (currentRound > 3) {
@@ -219,6 +231,10 @@ function updateResultScreen() {
     resultSummary.textContent = `You made it to round ${currentRound}!`;
   } else {
     // Classic mode (always 5 rounds)
+    // Hide share button for classic mode
+    if (shareButton) {
+      shareButton.style.display = "none";
+    }
     if (correctCount <= 2) {
       resultHeader.textContent = getRandomElement(resultHeaderNegative);
     } else if (correctCount > 2 && correctCount <= 4) {
@@ -291,6 +307,87 @@ function updateResultScreen() {
       );
     }
   );
+}
+
+// Share functionality for daily challenge
+function generateVisualGrid() {
+  // Create mystery grid based on which button was correct (4 options)
+  const positions = ['⬜', '⬜', '⬜', '⬜'];
+
+  if (!dailyGameState || !dailyGameState.eloChoices) {
+    return positions.join(' ');
+  }
+
+  // Convert to strings for comparison
+  const choices = dailyGameState.eloChoices.map(String);
+  const correctAnswer = String(dailyGameState.correctElo);
+  const userAnswer = String(dailyGameState.userAnswer);
+
+  const correctIndex = choices.indexOf(correctAnswer);
+
+  if (dailyGameState.timedOut) {
+    // Show all positions as black for timeout
+    return '⬛ ⬛ ⬛ ⬛';
+  } else if (dailyGameState.wasCorrect) {
+    // User got it right - show green at correct position
+    if (correctIndex !== -1) {
+      positions[correctIndex] = '🟩';
+    }
+  } else {
+    // User got it wrong - show yellow for user's guess, green for correct
+    const userIndex = choices.indexOf(userAnswer);
+    if (userIndex !== -1) {
+      positions[userIndex] = '🟨'; // Show where user guessed
+    }
+    if (correctIndex !== -1) {
+      positions[correctIndex] = '🟩'; // Show correct answer
+    }
+  }
+
+  return positions.join(' ');
+}
+
+function generateShareText() {
+  const challengeNum = getChallengeNumber();
+
+  // User must have game data if they're on result screen
+  const grid = generateVisualGrid();
+  const timeStr = dailyGameState?.timedOut ? 'DNF' : `${dailyGameState?.secondsUsed || 0}s`;
+  const score = dailyGameState?.finalScore || 0;
+  const result = dailyGameState?.wasCorrect ? '✅' : '❌';
+
+  return `Guess The ELO #${challengeNum} ${result}\n${grid} (${score.toLocaleString()})\n⏱️ ${timeStr} | 🔥 ${dailyState.currentStreak}\n\nBeat my score → guesstheelo.com?play=daily`;
+}
+
+async function shareResult() {
+  const shareText = generateShareText();
+
+  // Try native share first (mobile)
+  if (navigator.share && /mobile/i.test(navigator.userAgent)) {
+    try {
+      await navigator.share({
+        text: shareText
+      });
+      return;
+    } catch (err) {
+      // Fall through to clipboard
+    }
+  }
+
+  // Fallback to clipboard
+  try {
+    await navigator.clipboard.writeText(shareText);
+    // Show success notification using existing Notyf
+    const notyf = new Notyf({
+      duration: 2000,
+      position: { x: 'center', y: 'top' }
+    });
+    notyf.success('Copied to clipboard!');
+  } catch (err) {
+    // Final fallback - show text for manual copy
+    console.error('Failed to copy:', err);
+    alert('Copy this text:\n\n' + shareText);
+  }
 }
 
 function setUpEloButtons(correctElo, eloMinRange, eloMaxRange) {
