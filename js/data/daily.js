@@ -17,15 +17,8 @@ export function saveDailyState() {
 }
 
 export function getTodayDateCT() {
-  // Get current date in Chicago time
-  const now = new Date();
-  const ctDateStr = now.toLocaleDateString("en-CA", {
-    timeZone: "America/Chicago",
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
-  return ctDateStr; // Returns YYYY-MM-DD format directly
+  // Get current date in Chicago time (YYYY-MM-DD format)
+  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
 }
 
 export function hasPlayedToday() {
@@ -35,25 +28,18 @@ export function hasPlayedToday() {
 export function updateDailyResult() {
   const today = getTodayDateCT();
 
-  // Calculate yesterday in CT
-  const now = new Date();
-  now.setDate(now.getDate() - 1);
-  const yesterdayStr = now.toLocaleDateString("en-CA", {
-    timeZone: "America/Chicago",
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
+  // Skip if already played today
+  if (dailyState.lastPlayedDate === today) return;
 
-  // Update streak - playing counts regardless of winning
-  if (dailyState.lastPlayedDate === yesterdayStr) {
-    // Played yesterday - continue streak
-    dailyState.currentStreak++;
-  } else if (dailyState.lastPlayedDate !== today) {
-    // First time playing today or missed days - start/reset streak to 1
-    dailyState.currentStreak = 1;
-  }
-  // If already played today (lastPlayedDate === today), don't update streak again
+  // Get yesterday in Chicago time by getting Chicago's current date/time and subtracting a day
+  const chicagoNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
+  chicagoNow.setDate(chicagoNow.getDate() - 1);
+  const yesterdayStr = chicagoNow.toISOString().split('T')[0];
+
+  // Update streak based on consecutive play
+  dailyState.currentStreak = (dailyState.lastPlayedDate === yesterdayStr)
+    ? dailyState.currentStreak + 1
+    : 1;
 
   dailyState.bestStreak = Math.max(dailyState.bestStreak, dailyState.currentStreak);
   dailyState.lastPlayedDate = today;
@@ -61,14 +47,14 @@ export function updateDailyResult() {
 }
 
 export function getTimeUntilMidnightCT() {
-  // Calculate hours/minutes until midnight Chicago time
-  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
-  const midnight = new Date(now);
+  // Get current Chicago time and calculate time until midnight
+  const chicagoNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
+  const midnight = new Date(chicagoNow);
   midnight.setHours(24, 0, 0, 0);
 
-  const diff = midnight - now;
-  const hours = Math.floor(diff / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
+  const msUntilMidnight = midnight - chicagoNow;
+  const hours = Math.floor(msUntilMidnight / (1000 * 60 * 60));
+  const mins = Math.floor((msUntilMidnight % (1000 * 60 * 60)) / (1000 * 60));
 
   return `${hours}h ${mins}m`;
 }
