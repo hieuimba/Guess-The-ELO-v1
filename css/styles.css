@@ -320,6 +320,19 @@ body {
   margin-bottom: clamp(1.5rem, 0.824rem + 3.137vw, 2rem); /* min 345 max 600 */
 }
 
+/* Green completion badge for daily challenge */
+.completion-badge {
+  display: inline-block;
+  background-color: #4caf50;
+  color: white;
+  font-size: 0.75em;
+  font-weight: bold;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 0.5em;
+}
+
 #gameOptions {
   display: flex;
   justify-content: center;

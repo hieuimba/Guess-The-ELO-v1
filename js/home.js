@@ -1,5 +1,5 @@
 import { processSelections } from "./other/utils.js";
-import { loadDailyState, hasPlayedToday, getTimeUntilMidnightCT, dailyState } from "./data/daily.js";
+import { loadDailyState, hasPlayedToday, getTimeUntilMidnightCT, dailyState, getChallengeNumber } from "./data/daily.js";
 
 const gameModesButtons = document.querySelectorAll(".gameModesButtons");
 const classicButton = document.getElementById("classicButton");
@@ -67,9 +67,10 @@ export function updateUIForMode() {
     // Daily Challenge
     const played = hasPlayedToday();
     const timeUntilNext = getTimeUntilMidnightCT();
+    const challengeNum = getChallengeNumber();
 
-    // Update option title
-    optionTitle.textContent = "Daily Challenge";
+    // Update option title with challenge number
+    optionTitle.innerHTML = `Challenge #${challengeNum}${played ? ' <span class="completion-badge">✓</span>' : ''}`;
 
     // Update placeholder content with streak info
     const currentStreakLine = document.getElementById("currentStreakLine");
@@ -77,8 +78,8 @@ export function updateUIForMode() {
     const nextChallengeLine = document.getElementById("nextChallengeLine");
 
     if (played) {
-      currentStreakLine.textContent = "Completed ✓";
-      bestStreakLine.textContent = `Current Streak: 🔥 ${dailyState.currentStreak}`;
+      currentStreakLine.textContent = `Current Streak: 🔥 ${dailyState.currentStreak}`;
+      bestStreakLine.textContent = `Best Streak: 🔥 ${dailyState.bestStreak}`;
       nextChallengeLine.textContent = `Next challenge in ${timeUntilNext}`;
       startGameButton.textContent = "Review Daily";
       startGameButton.disabled = false; // Enable button for review

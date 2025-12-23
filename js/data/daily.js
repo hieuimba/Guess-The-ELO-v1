@@ -65,3 +65,20 @@ export function getTimeUntilMidnightCT() {
 
   return `${hours}h ${mins}m`;
 }
+
+export function getChallengeNumber() {
+  // Calculate the number of days since February 5, 2025 (Chicago timezone)
+  const startDate = new Date('2025-02-05T00:00:00');
+  const chicagoNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
+
+  // Get Chicago date at midnight for accurate day calculation
+  const chicagoToday = new Date(chicagoNow);
+  chicagoToday.setHours(0, 0, 0, 0);
+
+  // Calculate difference in days
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const daysSinceStart = Math.floor((chicagoToday - startDate) / msPerDay) + 1;
+
+  // Return at least 1
+  return Math.max(1, daysSinceStart);
+}
