@@ -1,4 +1,4 @@
-import { gameConfigs, currentGameMode, updateUIForMode, updateStreakBadge } from "./home.js";
+import { gameConfigs, currentGameMode, updateUIForMode, updateStreakBadge, updateNewBanner } from "./home.js";
 import { fetchGames, fetchDailyGame } from "./data/fetchGames.js";
 import { updateDailyResult, dailyState, loadDailyState, hasPlayedToday, getChallengeNumber } from "./data/daily.js";
 import {
@@ -182,6 +182,7 @@ viewResultButton.addEventListener("click", () => {
       dailyGameState.totalStreakBonus = totalStreakBonus;
     }
     updateDailyResult(dailyGameState);
+    updateNewBanner(); // Hide NEW banner after first play
   }
 
   updateResultScreen();

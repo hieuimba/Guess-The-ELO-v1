@@ -173,6 +173,19 @@ export function updateStreakBadge() {
 loadDailyState();
 updateStreakBadge();
 
+// Check if user has daily challenge data and show NEW banner only if they don't
+export function updateNewBanner() {
+  const newBanner = document.querySelector('#dailyChallengeButton .new-banner');
+  if (newBanner) {
+    const hasDailyData = localStorage.getItem('dailyChallenge') !== null;
+    // Show banner only if user has no daily challenge history
+    newBanner.style.display = hasDailyData ? 'none' : 'block';
+  }
+}
+
+// Initialize NEW banner visibility
+updateNewBanner();
+
 // Check URL parameters on page load
 const urlParams = new URLSearchParams(window.location.search);
 const playMode = urlParams.get("play");

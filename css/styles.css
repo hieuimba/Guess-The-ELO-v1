@@ -224,6 +224,40 @@ body {
   fill: var(--white);
 }
 
+/* NEW Banner for Daily Challenge */
+#dailyChallengeButton {
+  position: relative;
+  overflow: visible;
+}
+
+#dailyChallengeButton .new-banner {
+  position: absolute;
+  top: -2px;
+  left: -8px;
+  background: linear-gradient(135deg, #ff6b6b, #ff4757);
+  color: white;
+  padding: 2px clamp(0.5rem, -0.176rem + 3.137vw, 1rem); /* min 345 max 600 */
+  font-size: 0.75rem;
+  font-family: 'Oswald', sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 3px;
+  transform: rotate(-15deg);
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+  z-index: 1;
+  animation: pulse-banner 2s infinite;
+}
+
+@keyframes pulse-banner {
+  0%, 100% {
+    transform: rotate(-30deg) scale(1);
+  }
+  50% {
+    transform: rotate(-30deg) scale(1.05);
+  }
+}
+
 #dailyChallengeButton svg {
   width: clamp(2.223rem, 1.538rem + 3.174vw, 3.125rem); /* min 345 max 800 */
   height: clamp(2.223rem, 1.538rem + 3.174vw, 3.125rem); /* min 345 max 800 */
