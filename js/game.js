@@ -68,6 +68,7 @@ let currentRound = 0;
 let roundEnded = false;
 let isReviewMode = false;
 let dailyGameState = null; // Stores state for daily game
+let endlessModeRounds = []; // Stores round data for endless mode sharing
 
 function resetVariables() {
   gameArray = [];
@@ -92,6 +93,7 @@ function resetVariables() {
   roundEnded = false;
   isReviewMode = false;
   dailyGameState = null;
+  endlessModeRounds = []; // Reset endless mode rounds
 }
 
 function playSound(elementId) {
@@ -223,9 +225,9 @@ function updateResultScreen() {
       shareButton.style.display = "flex";
     }
   } else if (currentGameMode === "endless") {
-    // Hide share button for other modes
+    // Show share button for endless mode
     if (shareButton) {
-      shareButton.style.display = "none";
+      shareButton.style.display = "flex";
     }
     if (currentRound > 10) {
       resultHeader.textContent = getRandomElement(resultHeaderAllCorrect);
@@ -326,42 +328,50 @@ function updateResultScreen() {
   );
 }
 
-// Share functionality for daily challenge
-function generateVisualGrid() {
-  // Create mystery grid based on which button was correct (4 options)
+// Reusable function to generate visual grid for a single round
+function generateSingleRoundGrid(eloChoices, correctElo, userAnswer, timedOut) {
   const positions = ['⬜', '⬜', '⬜', '⬜'];
 
-  if (!dailyGameState || !dailyGameState.eloChoices) {
+  if (!eloChoices) {
     return positions.join(' ');
   }
 
-  // Convert to strings for comparison
-  const choices = dailyGameState.eloChoices.map(String);
-  const correctAnswer = String(dailyGameState.correctElo);
-  const userAnswer = String(dailyGameState.userAnswer);
+  const choices = eloChoices.map(String);
+  const correctIndex = choices.indexOf(String(correctElo));
+  const userIndex = choices.indexOf(String(userAnswer));
 
-  const correctIndex = choices.indexOf(correctAnswer);
-
-  if (dailyGameState.timedOut) {
-    // Show all positions as black for timeout
+  if (timedOut) {
     return '⬛ ⬛ ⬛ ⬛';
-  } else if (dailyGameState.wasCorrect) {
+  } else if (String(userAnswer) === String(correctElo)) {
     // User got it right - show green at correct position
     if (correctIndex !== -1) {
       positions[correctIndex] = '🟩';
     }
   } else {
     // User got it wrong - show yellow for user's guess, green for correct
-    const userIndex = choices.indexOf(userAnswer);
     if (userIndex !== -1) {
-      positions[userIndex] = '🟨'; // Show where user guessed
+      positions[userIndex] = '🟨';
     }
     if (correctIndex !== -1) {
-      positions[correctIndex] = '🟩'; // Show correct answer
+      positions[correctIndex] = '🟩';
     }
   }
 
   return positions.join(' ');
+}
+
+// Share functionality for daily challenge
+function generateVisualGrid() {
+  if (!dailyGameState || !dailyGameState.eloChoices) {
+    return '⬜ ⬜ ⬜ ⬜';
+  }
+
+  return generateSingleRoundGrid(
+    dailyGameState.eloChoices,
+    dailyGameState.correctElo,
+    dailyGameState.userAnswer,
+    dailyGameState.timedOut
+  );
 }
 
 function generateShareText() {
@@ -373,11 +383,37 @@ function generateShareText() {
   const score = dailyGameState?.finalScore || 0;
   const result = dailyGameState?.wasCorrect ? '✅' : '❌';
 
-  return `Guess The ELO #${challengeNum} ${result}\n${grid} (${score.toLocaleString()})\n⏱️ ${timeStr} | 🔥 ${dailyState.currentStreak}\n\nBeat my score → guesstheelo.com?play=daily`;
+  return `Guess The ELO Daily #${challengeNum} ${result}\n${grid} (${score.toLocaleString()})\n⏱️ ${timeStr} | 🔥 ${dailyState.currentStreak}\n\nCan you beat my score? → https://guesstheelo.com?play=daily`;
+}
+
+function generateEndlessShareText() {
+  if (!endlessModeRounds || endlessModeRounds.length === 0) {
+    return 'Guess The ELO - Endless Mode\n\nNo rounds played\nTry it → https://guesstheelo.com?play=endless';
+  }
+
+  let grids = [];
+  let totalScore = 0;
+
+  // Generate grid for each round
+  endlessModeRounds.forEach((round) => {
+    const grid = generateSingleRoundGrid(
+      round.eloChoices,
+      round.correctElo,
+      round.userAnswer,
+      round.timedOut
+    );
+    totalScore += round.roundScore;
+    grids.push(`${grid} (${round.roundScore.toLocaleString()})`);
+  });
+
+  const roundReached = endlessModeRounds.length;
+  return `Guess The ELO - Endless Mode\n${grids.join('\n')}\n${roundReached} Rounds | Total: ${totalScore.toLocaleString()}\n\nHow far can you go? → https://guesstheelo.com?play=endless`;
 }
 
 async function shareResult() {
-  const shareText = generateShareText();
+  const shareText = currentGameMode === "daily"
+    ? generateShareText()
+    : generateEndlessShareText();
 
   // Try native share first (mobile)
   if (navigator.share && /mobile/i.test(navigator.userAgent)) {
@@ -424,6 +460,18 @@ function setUpEloButtons(correctElo, eloMinRange, eloMaxRange) {
       if (!dailyGameState) dailyGameState = {};
       dailyGameState.eloChoices = choices;
       dailyGameState.correctElo = correctElo;
+    }
+
+    // Save choices for endless mode
+    if (currentGameMode === "endless") {
+      const roundData = {
+        eloChoices: choices,
+        correctElo: correctElo,
+        userAnswer: null,
+        timedOut: false,
+        roundScore: 0
+      };
+      endlessModeRounds.push(roundData);
     }
   }
 
@@ -488,6 +536,12 @@ function eloButtonClickHandler(button, correctElo) {
     }
   }
 
+  // Save user's answer for endless mode
+  if (currentGameMode === "endless" && endlessModeRounds.length > 0) {
+    const currentRoundData = endlessModeRounds[endlessModeRounds.length - 1];
+    currentRoundData.userAnswer = button.textContent;
+  }
+
   if (button.textContent === correctElo) {
     button.classList.add("correctGuess");
     endRound("Correct", button);
@@ -544,6 +598,14 @@ export function endRound(answer, button) {
     streakCount = 0;
     updateAnswerBannerElement(0, 0, true);
     removeHeart();
+
+    // Save timeout for endless mode
+    if (currentGameMode === "endless" && endlessModeRounds.length > 0) {
+      const currentRoundData = endlessModeRounds[endlessModeRounds.length - 1];
+      currentRoundData.timedOut = true;
+      currentRoundData.roundScore = 0;
+    }
+
     eloButtons.forEach((btn) => {
       if (btn.textContent === correctElo) {
         btn.classList.add("correctGuess");
@@ -567,6 +629,12 @@ export function endRound(answer, button) {
       updateScoreElement(correctScore + timeBonus, streakBonus);
       addHeart();
 
+      // Save round score for endless mode
+      if (currentGameMode === "endless" && endlessModeRounds.length > 0) {
+        const currentRoundData = endlessModeRounds[endlessModeRounds.length - 1];
+        currentRoundData.roundScore = correctScore + timeBonus + streakBonus;
+      }
+
       // Extension point: submitAnonymousStats(correctElo, button.textContent) for daily mode
     } else if (answer === "Incorrect") {
       playSound("incorrectSound");
@@ -574,6 +642,12 @@ export function endRound(answer, button) {
 
       updateAnswerBannerElement(0, 0);
       removeHeart();
+
+      // Save round score for endless mode
+      if (currentGameMode === "endless" && endlessModeRounds.length > 0) {
+        const currentRoundData = endlessModeRounds[endlessModeRounds.length - 1];
+        currentRoundData.roundScore = 0;
+      }
 
       // Extension point: submitAnonymousStats(correctElo, button.textContent) for daily mode
     }
