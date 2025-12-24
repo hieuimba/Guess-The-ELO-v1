@@ -336,12 +336,8 @@ body {
 .completion-badge {
   display: inline-flex;
   align-items: center;
-  background-color: #4caf50;
-  color: white;
-  font-size: 1em;
+  color: #4caf50;
   font-weight: bold;
-  padding: 0.1em 0.1em;
-  border-radius: 4px;
   vertical-align: middle;
   margin-left: 0.2em;
 }
@@ -349,6 +345,8 @@ body {
 .completion-badge svg {
   display: inline-block;
   vertical-align: middle;
+  width: clamp(1rem, 0.324rem + 3.137vw, 1.5rem) !important;
+  height: clamp(1rem, 0.324rem + 3.137vw, 1.5rem) !important;
 }
 
 /* Flame icon styling */
@@ -983,11 +981,12 @@ img.light-shadow {
       0.588rem + 25.098vw,
       10rem
     );
-  row-gap: clamp(1.6rem, 1.059rem + 2.51vw, 2rem); /* min 345 max 600 */
+  row-gap: clamp(0.5rem, -0.176rem + 3.137vw, 1rem); /* min 345 max 600 */
   margin-bottom: 2rem;
 }
 
 #totalBaseScoreValue,
+#totalTimeBonusValue,
 #totalStreakBonusValue,
 #longestStreakValue {
   text-align: right;

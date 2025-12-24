@@ -70,7 +70,7 @@ export function updateUIForMode() {
     const challengeNum = getChallengeNumber();
 
     // Update option title with challenge number
-    optionTitle.innerHTML = `Challenge #${challengeNum}${played ? ' <span class="completion-badge"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check"><path d="M20 6 9 17l-5-5"/></svg></span>' : ''}`;
+    optionTitle.innerHTML = `Challenge #${challengeNum}${played ? ' <span class="completion-badge" title="Challenge Completed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-icon lucide-circle-check"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>' : ''}`;
 
     // Update placeholder content with streak info
     const todayScoreLine = document.getElementById("todayScoreLine");
@@ -79,14 +79,14 @@ export function updateUIForMode() {
 
     if (played) {
       const todayScore = dailyState.lastGameData?.finalScore || 0;
-      todayScoreLine.innerHTML = `Today's Score: ${todayScore.toLocaleString()}`;
-      currentStreakLine.innerHTML = `Current Streak: \u00A0<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg> ${dailyState.currentStreak}`;
+      todayScoreLine.innerHTML = `Today's Score: \u00A0${todayScore.toLocaleString()}`;
+      currentStreakLine.innerHTML = `Current Streak: \u00A0<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg> ${dailyState.currentStreak}`;
       nextChallengeLine.textContent = `Next challenge in ${timeUntilNext}`;
       startGameButton.textContent = "Review Game";
       startGameButton.disabled = false; // Enable button for review
     } else {
-      todayScoreLine.innerHTML = `Today's Score: —`;
-      currentStreakLine.innerHTML = `Current Streak: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg> ${dailyState.currentStreak}`;
+      todayScoreLine.innerHTML = `Today's Score: \u00A0—`;
+      currentStreakLine.innerHTML = `Current Streak: \u00A0<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg> ${dailyState.currentStreak}`;
       nextChallengeLine.textContent = `Next challenge in ${timeUntilNext}`;
       startGameButton.textContent = "Play Daily";
       startGameButton.disabled = false;

@@ -54,6 +54,7 @@ let correctElo = 0;
 
 let correctCount = 0;
 let totalStreakBonus = 0;
+let totalTimeBonus = 0;
 let longestStreak = 0;
 
 let maxRounds = 0;
@@ -76,6 +77,7 @@ function resetVariables() {
 
   correctCount = 0;
   totalStreakBonus = 0;
+  totalTimeBonus = 0;
   longestStreak = 0;
 
   maxRounds = 0;
@@ -130,6 +132,8 @@ startGameButton?.addEventListener("click", async () => {
       // Load saved game data for review
       gameArray = [dailyGameState.gameDict];
       gameScore = dailyGameState.finalScore || 0;
+      totalTimeBonus = dailyGameState.totalTimeBonus || 0;
+      totalStreakBonus = dailyGameState.totalStreakBonus || 0;
     } else {
       gameArray = [await fetchDailyGame()];
     }
@@ -172,6 +176,8 @@ viewResultButton.addEventListener("click", () => {
     // Save the final score before updating daily result
     if (dailyGameState) {
       dailyGameState.finalScore = gameScore;
+      dailyGameState.totalTimeBonus = totalTimeBonus;
+      dailyGameState.totalStreakBonus = totalStreakBonus;
     }
     updateDailyResult(dailyGameState);
   }
@@ -247,6 +253,7 @@ function updateResultScreen() {
 
   document.getElementById("totalScore").textContent = "\u00A0";
   document.getElementById("totalBaseScoreValue").textContent = "\u00A0";
+  document.getElementById("totalTimeBonusValue").textContent = "\u00A0";
   document.getElementById("totalStreakBonusValue").textContent = "\u00A0";
   document.getElementById("longestStreakValue").textContent = "\u00A0";
 
@@ -273,13 +280,15 @@ function updateResultScreen() {
       setTimeout(callback, duration);
     }
   }
-  const baseScore = gameScore - totalStreakBonus;
+  const baseScore = gameScore - totalStreakBonus - totalTimeBonus;
 
   let baseScoreAnimationTime = gameScore > 0 ? 1000 : 0;
+  let totalTimeBonusAnimationTime = totalTimeBonus > 0 ? 1000 : 0;
   let totalStreakBonusAnimationTime = totalStreakBonus > 0 ? 1000 : 0;
   const longestStreakValueAnimationTime = 0;
   const totalScoreAnimationTime =
     baseScoreAnimationTime +
+    totalTimeBonusAnimationTime +
     totalStreakBonusAnimationTime +
     longestStreakValueAnimationTime;
 
@@ -292,16 +301,24 @@ function updateResultScreen() {
     baseScoreAnimationTime,
     () => {
       animateScore(
-        "totalStreakBonusValue",
+        "totalTimeBonusValue",
         0,
-        totalStreakBonus,
-        totalStreakBonusAnimationTime,
+        totalTimeBonus,
+        totalTimeBonusAnimationTime,
         () => {
           animateScore(
-            "longestStreakValue",
+            "totalStreakBonusValue",
             0,
-            longestStreak,
-            longestStreakValueAnimationTime
+            totalStreakBonus,
+            totalStreakBonusAnimationTime,
+            () => {
+              animateScore(
+                "longestStreakValue",
+                0,
+                longestStreak,
+                longestStreakValueAnimationTime
+              );
+            }
           );
         }
       );
@@ -503,6 +520,12 @@ export function endRound(answer, button) {
     timeBonus = timeBonus * 2;
   }
 
+  // Save time bonus for daily challenge
+  if (currentGameMode === "daily" && !isReviewMode) {
+    if (!dailyGameState) dailyGameState = {};
+    dailyGameState.timeBonus = timeBonus;
+  }
+
   let streakBonus = 0;
 
   // Disable buttons
@@ -538,6 +561,7 @@ export function endRound(answer, button) {
       longestStreak = Math.max(longestStreak, streakCount);
       streakBonus = streakCount >= 3 ? streakCount * 100 : 0;
       totalStreakBonus += streakBonus;
+      totalTimeBonus += timeBonus;
 
       updateAnswerBannerElement(correctScore + timeBonus, streakBonus);
       updateScoreElement(correctScore + timeBonus, streakBonus);
