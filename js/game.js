@@ -458,30 +458,58 @@ async function shareResult() {
     ? generateShareText()
     : generateEndlessShareText();
 
-  // Try native share first (mobile)
-  if (navigator.share && /mobile/i.test(navigator.userAgent)) {
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
     try {
-      await navigator.share({
-        text: shareText
+      await navigator.clipboard.writeText(shareText);
+      const notyf = new Notyf({
+        duration: 2000,
+        position: { x: 'center', y: 'top' }
       });
+      notyf.success('Copied to clipboard!');
       return;
     } catch (err) {
-      // Fall through to clipboard
+      console.log('Clipboard API failed, trying fallback:', err);
     }
   }
 
-  // Fallback to clipboard
+  // Fallback: Create textarea and use execCommand
+  const textarea = document.createElement('textarea');
+  textarea.value = shareText;
+  textarea.style.position = 'fixed';
+  textarea.style.top = '0';
+  textarea.style.left = '0';
+  textarea.style.width = '2em';
+  textarea.style.height = '2em';
+  textarea.style.padding = '0';
+  textarea.style.border = 'none';
+  textarea.style.outline = 'none';
+  textarea.style.boxShadow = 'none';
+  textarea.style.background = 'transparent';
+
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
   try {
-    await navigator.clipboard.writeText(shareText);
-    // Show success notification using existing Notyf
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textarea);
+
     const notyf = new Notyf({
       duration: 2000,
       position: { x: 'center', y: 'top' }
     });
-    notyf.success('Copied to clipboard!');
+
+    if (successful) {
+      notyf.success('Copied to clipboard!');
+    } else {
+      notyf.error('Failed to copy - please try again');
+    }
   } catch (err) {
-    // Final fallback - show text for manual copy
-    console.error('Failed to copy:', err);
+    document.body.removeChild(textarea);
+    console.error('Copy failed:', err);
+
+    // Last resort: show alert with text
     alert('Copy this text:\n\n' + shareText);
   }
 }
