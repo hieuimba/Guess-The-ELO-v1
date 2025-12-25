@@ -1,6 +1,6 @@
 import { gameConfigs, currentGameMode, updateUIForMode, updateStreakBadge, updateNewBanner } from "./home.js";
 import { fetchGames, fetchDailyGame } from "./data/fetchGames.js";
-import { updateDailyResult, dailyState, loadDailyState, hasPlayedToday, getChallengeNumber } from "./data/daily.js";
+import { updateDailyResult, dailyState, loadDailyState, hasPlayedToday, getChallengeNumber, saveDailyState } from "./data/daily.js";
 import {
   initializeChessBoard,
   removeChessBoard,
@@ -114,8 +114,24 @@ startGameButton?.addEventListener("click", async () => {
 
   // Check if this is a review session for daily challenge
   if (currentGameMode === "daily" && hasPlayedToday() && dailyState.lastGameData) {
-    isReviewMode = true;
-    dailyGameState = dailyState.lastGameData;
+    // Validate the saved game data structure
+    const savedData = dailyState.lastGameData;
+    const hasValidGameDict = savedData.gameDict &&
+                             savedData.gameDict.pgn &&
+                             typeof savedData.gameDict.rating === 'number';
+
+    if (hasValidGameDict) {
+      // Data looks valid, proceed with review mode
+      isReviewMode = true;
+      dailyGameState = savedData;
+    } else {
+      // Data is corrupted, clear it and let user play fresh
+      console.warn('Corrupted daily challenge data detected, clearing and allowing fresh play');
+      dailyState.lastGameData = null;
+      dailyState.lastPlayedDate = null; // Reset so user can play today's challenge
+      saveDailyState(); // Save the cleared state
+      isReviewMode = false;
+    }
   }
 
   // Set game parameters based on current mode
@@ -134,11 +150,18 @@ startGameButton?.addEventListener("click", async () => {
   } else if (currentGameMode === "daily") {
     maxRounds = 1;
     if (isReviewMode) {
-      // Load saved game data for review
-      gameArray = [dailyGameState.gameDict];
-      gameScore = dailyGameState.finalScore || 0;
-      totalTimeBonus = dailyGameState.totalTimeBonus || 0;
-      totalStreakBonus = dailyGameState.totalStreakBonus || 0;
+      // Load saved game data for review (already validated above)
+      try {
+        gameArray = [dailyGameState.gameDict];
+        gameScore = dailyGameState.finalScore || 0;
+        totalTimeBonus = dailyGameState.totalTimeBonus || 0;
+        totalStreakBonus = dailyGameState.totalStreakBonus || 0;
+      } catch (err) {
+        // If anything fails, fall back to fetching fresh game
+        console.warn('Error loading review data, fetching fresh game:', err);
+        isReviewMode = false;
+        gameArray = [await fetchDailyGame()];
+      }
     } else {
       gameArray = [await fetchDailyGame()];
     }
