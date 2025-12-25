@@ -1,5 +1,6 @@
 import { processSelections } from "./other/utils.js";
 import { loadDailyState, hasPlayedToday, getTimeUntilMidnightCT, dailyState, getChallengeNumber } from "./data/daily.js";
+import { tracker } from "./analytics/metrics.js";
 
 const gameModesButtons = document.querySelectorAll(".gameModesButtons");
 const classicButton = document.getElementById("classicButton");
@@ -128,6 +129,8 @@ export function updateUIForMode() {
 // Add event listener to each game mode button
 gameModesButtons.forEach((button) => {
   button.addEventListener("click", () => {
+    const previousMode = currentGameMode;
+
     // Remove 'active' class from all buttons
     gameModesButtons.forEach((btn) => {
       btn.classList.remove("active");
@@ -144,6 +147,8 @@ gameModesButtons.forEach((button) => {
     } else if (button === endlessModeButton) {
       currentGameMode = "endless";
     }
+
+    // Mode selection is tracked when game starts, no need to track here
 
     // Update URL with the selected game mode
     const url = new URL(window.location);
@@ -204,19 +209,23 @@ function updateOption(optionType, action) {
   if (currentGameMode === "daily") return;
 
   let index, options;
+  let oldValue;
 
   switch(optionType) {
     case "timeControl":
       options = timeControlOptions;
       index = timeControlIndex;
+      oldValue = options[index];
       break;
     case "eval":
       options = evalOptions;
       index = evalIndex;
+      oldValue = options[index];
       break;
     case "timeLimit":
       options = timeLimitOptions;
       index = timeLimitIndex;
+      oldValue = options[index];
       break;
   }
 
@@ -244,6 +253,8 @@ function updateOption(optionType, action) {
       gameModeOptions[currentGameMode].timeLimitSelection = options[index];
       break;
   }
+
+  // Option changes are tracked when game starts, no need to track here
 
   // Update game configs
   gameConfigs = processSelections(gameModeOptions[currentGameMode]);
@@ -328,6 +339,8 @@ enableSelectionWheelEvents();
 // Music toggle
 musicToggleButton.addEventListener("click", () => {
   musicToggleButton.classList.toggle("active");
+  const musicState = music.paused ? "on" : "off";
+
   if (music.paused) {
     musicToggleButton.title = "Turn Music Off";
     music.volume = 0.7;
@@ -336,10 +349,15 @@ musicToggleButton.addEventListener("click", () => {
     musicToggleButton.title = "Turn Music On";
     music.pause();
   }
+
+  // Track music toggle
+  tracker.trackButtonClick("music_toggle", { state: musicState });
 });
 
 // Fullscreen toggle
 fullscreenToggleButton.addEventListener("click", () => {
+  const isEnteringFullscreen = !document.fullscreenElement;
+
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch((err) => {
       console.error(`Error attempting to enable fullscreen mode: ${err.message} (${err.name})`);
@@ -347,6 +365,9 @@ fullscreenToggleButton.addEventListener("click", () => {
   } else {
     document.exitFullscreen();
   }
+
+  // Track fullscreen toggle
+  tracker.trackButtonClick("fullscreen_toggle", { state: isEnteringFullscreen ? "enter" : "exit" });
 });
 
 // Update button text based on fullscreen status

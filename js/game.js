@@ -27,6 +27,7 @@ import {
   resultHeaderNegative,
   resultHeaderPositive,
 } from "./other/config.js";
+import { tracker } from "./analytics/metrics.js";
 
 const startGameButton = document.getElementById("startGameButton");
 const nextGameButton = document.getElementById("nextGameButton");
@@ -69,6 +70,7 @@ let roundEnded = false;
 let isReviewMode = false;
 let dailyGameState = null; // Stores state for daily game
 let endlessModeRounds = []; // Stores round data for endless mode sharing
+let gameInProgress = false; // Track if game is actively being played
 
 function resetVariables() {
   gameArray = [];
@@ -94,6 +96,7 @@ function resetVariables() {
   isReviewMode = false;
   dailyGameState = null;
   endlessModeRounds = []; // Reset endless mode rounds
+  gameInProgress = false;
 }
 
 function playSound(elementId) {
@@ -147,6 +150,16 @@ startGameButton?.addEventListener("click", async () => {
   generateHeartIcons();
   newGame(gameArray[currentRound]);
 
+  // Track game start (only for actual gameplay, not reviews)
+  if (!isReviewMode) {
+    tracker.trackGameStart(currentGameMode, {
+      timeLimit: gameTimeLimit,
+      evaluation: gameEvaluation,
+      timeControl: gameTimeControls
+    });
+    gameInProgress = true;
+  }
+
   enableStartGameButton();
   footer.style.display = "none";
   homeScreen.style.display = "none";
@@ -172,6 +185,29 @@ viewResultButton.addEventListener("click", () => {
   playSound("gameEndSound");
   removeChessBoard();
   clearAnswerBanner();
+
+  // Track game completion (before updating result screen)
+  if (!isReviewMode) {
+    tracker.trackGameComplete({
+      mode: currentGameMode,
+      finalScore: gameScore,
+      roundsPlayed: currentRound,
+      correctCount: correctCount,
+      longestStreak: longestStreak
+    });
+    gameInProgress = false;
+  }
+
+  // Track daily challenge specifically
+  if (currentGameMode === "daily" && !isReviewMode && dailyGameState) {
+    tracker.trackDailyChallenge({
+      challengeNumber: getChallengeNumber(),
+      streak: dailyState.currentStreak || 0,
+      score: gameScore,
+      correct: dailyGameState.wasCorrect || false,
+      timeUsed: dailyGameState.secondsUsed || 0
+    });
+  }
 
   // Update daily challenge completion when game ends (regardless of correct/incorrect)
   if (currentGameMode === "daily" && !isReviewMode) {
@@ -208,6 +244,12 @@ mainMenuButton.addEventListener("click", () => {
 });
 
 shareButton?.addEventListener("click", async () => {
+  // Track share action
+  tracker.track('ui', 'share', {
+    mode: currentGameMode,
+    score: gameScore,
+    rounds_played: currentRound
+  });
   await shareResult();
 });
 
@@ -517,6 +559,23 @@ function eloButtonClickHandler(button, correctElo) {
     countdownSound.pause();
     countdownSound.currentTime = 0; // Reset the audio to the beginning
   }
+
+  // Track the round completion
+  const isCorrect = button.textContent === correctElo;
+  const timeRemaining = gameTimeLimit === "None" ? null :
+    (remainingTimePercentage !== undefined ?
+      Math.floor((gameTimeLimit === "90s" ? 90 : 45) * remainingTimePercentage) : 0);
+
+  tracker.trackRoundComplete({
+    mode: currentGameMode,
+    round: currentRound + 1,
+    correct: isCorrect,
+    timeRemaining: timeRemaining,
+    eloGuessed: parseInt(button.textContent),
+    eloCorrect: parseInt(correctElo),
+    pointsEarned: 0, // Will be calculated in endRound
+    streak: streakCount
+  });
 
   // Save user's answer and timing for daily challenge
   if (currentGameMode === "daily" && !isReviewMode) {
@@ -1017,3 +1076,10 @@ function observeDocument() {
 
 // Start observing the document
 observeDocument();
+
+// Track game abandonment when user leaves page
+window.addEventListener('beforeunload', () => {
+  if (gameInProgress && !isReviewMode) {
+    tracker.trackGameAbandon(currentGameMode, currentRound + 1);
+  }
+});
