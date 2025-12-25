@@ -403,7 +403,7 @@ body {
   flex-direction: column;
   gap: 1rem;
   width: 100%;
-  margin-top: clamp(1rem, -1.029rem + 9.412vw, 2.5rem); /* Same as start button */
+  margin-top: clamp(1rem, -1.029rem + 9.412vw, 2.5rem); /* min 345 max 600 */
 }
 
 /* Share button for daily challenge */

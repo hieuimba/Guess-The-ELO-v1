@@ -116,11 +116,13 @@ startGameButton?.addEventListener("click", async () => {
   if (currentGameMode === "daily" && hasPlayedToday() && dailyState.lastGameData) {
     // Validate the saved game data structure
     const savedData = dailyState.lastGameData;
-    const hasValidGameDict = savedData.gameDict &&
-                             savedData.gameDict.pgn &&
-                             typeof savedData.gameDict.rating === 'number';
+    const hasValidData = savedData.eloChoices &&
+                        Array.isArray(savedData.eloChoices) &&
+                        savedData.eloChoices.length === 4 &&
+                        savedData.correctElo &&
+                        savedData.gameDict;
 
-    if (hasValidGameDict) {
+    if (hasValidData) {
       // Data looks valid, proceed with review mode
       isReviewMode = true;
       dailyGameState = savedData;
